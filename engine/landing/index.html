@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SnapAI — AI event photographer that never misses the moment</title>
+<meta name="description" content="Auto-capture cake-cutting, ring ceremonies, group photos and unique moments at any event. AI-powered, photographer-in-the-loop.">
+<style>
+:root { --ink:#0f172a; --muted:#64748b; --accent:#6366f1; --accent2:#a855f7;
+        --cream:#fafaf9; --border:#e5e7eb; --amber:#f59e0b; }
+* { box-sizing:border-box; }
+body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
+       color:var(--ink); background:var(--cream); line-height:1.55; }
+.wrap { max-width:1100px; margin:0 auto; padding:24px; }
+header { display:flex; justify-content:space-between; align-items:center; }
+.logo { font-weight:800; font-size:22px; }
+.logo .dot { color:var(--accent); }
+nav a { color:var(--ink); text-decoration:none; margin-left:24px; font-size:14px; }
+nav a:hover { color:var(--accent); }
+.hero { text-align:center; padding:80px 0 60px; }
+.hero h1 { font-size:54px; margin:0 0 16px 0; line-height:1.05; letter-spacing:-1.5px; }
+.hero .grad { background:linear-gradient(135deg,var(--accent),var(--accent2));
+              -webkit-background-clip:text; background-clip:text; color:transparent; }
+.hero p { font-size:18px; color:var(--muted); max-width:640px; margin:0 auto 32px; }
+.cta { display:inline-block; padding:14px 28px; background:var(--accent); color:#fff;
+       border-radius:8px; text-decoration:none; font-weight:600; font-size:16px;
+       transition:.15s; }
+.cta:hover { background:var(--accent2); transform:translateY(-1px); }
+.cta.ghost { background:transparent; color:var(--ink); border:1px solid var(--border); margin-left:8px; }
+
+.features { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+            gap:24px; padding:60px 0; }
+.feat { padding:24px; background:#fff; border-radius:12px; border:1px solid var(--border); }
+.feat .ic { font-size:28px; margin-bottom:12px; }
+.feat h3 { margin:0 0 8px 0; font-size:18px; }
+.feat p { margin:0; color:var(--muted); font-size:14px; }
+
+.demo { padding:60px 0; text-align:center; }
+.demo .stub { background:#1e1b4b; color:#fff; padding:60px 24px; border-radius:12px;
+              max-width:780px; margin:0 auto; }
+.demo .stub h3 { margin:0 0 12px 0; font-size:22px; }
+
+.pricing { padding:60px 0; }
+.pricing h2 { text-align:center; font-size:36px; margin:0 0 12px; }
+.pricing .sub { text-align:center; color:var(--muted); margin:0 0 40px; }
+.tiers { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+         gap:20px; }
+.tier { padding:28px; background:#fff; border-radius:12px; border:1px solid var(--border);
+        position:relative; }
+.tier.popular { border:2px solid var(--accent); transform:translateY(-6px); }
+.tier .badge { position:absolute; top:-12px; right:20px; background:var(--accent); color:#fff;
+               padding:4px 10px; border-radius:6px; font-size:11px; font-weight:600; }
+.tier h3 { margin:0 0 8px; font-size:20px; }
+.tier .price { font-size:36px; font-weight:800; margin:8px 0; }
+.tier .price small { font-size:13px; font-weight:400; color:var(--muted); }
+.tier ul { padding-left:18px; margin:16px 0; font-size:14px; color:var(--ink); }
+.tier ul li { margin:6px 0; }
+.tier .pick { display:block; text-align:center; padding:10px; background:var(--ink);
+              color:#fff; border-radius:6px; text-decoration:none; font-weight:600;
+              margin-top:16px; }
+.tier.popular .pick { background:var(--accent); }
+
+.waitlist { text-align:center; padding:80px 0; background:#1e1b4b; color:#fff;
+            border-radius:16px; margin:60px 0; }
+.waitlist h2 { font-size:32px; margin:0 0 12px; }
+.waitlist p { margin:0 0 28px; color:#cbd5e1; }
+.waitlist form { display:inline-flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+.waitlist input { padding:14px 18px; border-radius:8px; border:0; min-width:280px; font-size:15px; }
+.waitlist button { padding:14px 28px; border-radius:8px; border:0;
+                   background:var(--amber); color:#1e1b4b; font-weight:700; cursor:pointer; }
+
+footer { padding:40px 0; border-top:1px solid var(--border); margin-top:40px;
+         display:flex; justify-content:space-between; flex-wrap:wrap; gap:16px;
+         color:var(--muted); font-size:13px; }
+footer a { color:var(--muted); text-decoration:none; margin-right:18px; }
+@media (max-width:640px) { .hero h1 { font-size:36px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="logo">📸 SnapAI<span class="dot">.</span></div>
+  <nav>
+    <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#waitlist">Get early access</a>
+    <a href="https://github.com/yourorg/SnapAI">GitHub</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <h1>Never miss the <span class="grad">moment</span> again.</h1>
+  <p>SnapAI watches your event camera with computer vision and auto-captures
+  cake-cutting, ring ceremonies, group photos, and the candid moments
+  worth keeping. You stay focused on the event. The AI does the press-button.</p>
+  <a class="cta" href="#waitlist">Get early access →</a>
+  <a class="cta ghost" href="#demo">See a demo</a>
+</section>
+
+<section id="features" class="features">
+  <div class="feat"><div class="ic">🎯</div>
+    <h3>Real-time moment detection</h3>
+    <p>Real CLIP + custom-trained classifiers identify ceremonial peaks
+    in under 80 ms per frame. 11 default moment types, expandable per event.</p>
+  </div>
+  <div class="feat"><div class="ic">😀</div>
+    <h3>Emotion-aware capture</h3>
+    <p>AffectNet-trained FER recognises joy, surprise, and intimacy.
+    Combined with iris-based gaze (L2CS-Net), SnapAI waits for the right
+    moment, not just any moment.</p>
+  </div>
+  <div class="feat"><div class="ic">🧠</div>
+    <h3>Learns your style</h3>
+    <p>Click 👍 or 👎 on captures. Per-event Bayesian priors plus
+    CLIP "kept-frame centroids" mean the model gets better at YOUR
+    aesthetic over the course of one event.</p>
+  </div>
+  <div class="feat"><div class="ic">🎙</div>
+    <h3>Voice + text live prompts</h3>
+    <p>Switch what to capture mid-event by typing or speaking — "also catch
+    confetti" works exactly like you'd say it. No menu diving.</p>
+  </div>
+  <div class="feat"><div class="ic">⚡</div>
+    <h3>Runs on your laptop</h3>
+    <p>Apple Silicon MPS, NVIDIA CUDA, or pure CPU — no cloud lock-in.
+    Tiered model zoo: install only what you want from MediaPipe → YOLO → CLIP.</p>
+  </div>
+  <div class="feat"><div class="ic">📂</div>
+    <h3>Photographer-in-the-loop</h3>
+    <p>Review and curate. Drag to reorder. Share a magic link. You always
+    own the photos and the choice. The AI is your assistant, not your
+    replacement.</p>
+  </div>
+</section>
+
+<section id="demo" class="demo">
+  <div class="stub">
+    <h3>🎬 Demo video coming soon</h3>
+    <p>Live capture run on a real wedding — 90 seconds.</p>
+  </div>
+</section>
+
+<section id="pricing" class="pricing">
+  <h2>Pricing</h2>
+  <p class="sub">Free for personal events. Production tiers when you're ready.</p>
+  <div class="tiers">
+
+    <div class="tier"><h3>Starter</h3>
+      <div class="price">$0<small>/mo</small></div>
+      <p style="color:var(--muted);font-size:13px">For trying it out.</p>
+      <ul><li>3 events / month</li><li>Up to 100 captures / event</li>
+          <li>Basic album export</li><li>Email support</li></ul>
+      <a class="pick" href="#waitlist">Start free</a>
+    </div>
+
+    <div class="tier popular"><span class="badge">MOST POPULAR</span>
+      <h3>Pro</h3>
+      <div class="price">$49<small>/mo</small></div>
+      <p style="color:var(--muted);font-size:13px">For working photographers.</p>
+      <ul><li>Unlimited events</li><li>Unlimited captures</li>
+          <li>Custom moment prompts</li><li>Priority support</li>
+          <li>Album delivery links</li></ul>
+      <a class="pick" href="#waitlist">Get Pro</a>
+    </div>
+
+    <div class="tier"><h3>Studio</h3>
+      <div class="price">$149<small>/mo</small></div>
+      <p style="color:var(--muted);font-size:13px">For photo studios.</p>
+      <ul><li>Everything in Pro</li><li>Up to 5 simultaneous cameras</li>
+          <li>White-label branding</li><li>API access</li>
+          <li>Dedicated account manager</li></ul>
+      <a class="pick" href="#waitlist">Get Studio</a>
+    </div>
+
+    <div class="tier"><h3>Enterprise</h3>
+      <div class="price">Custom</div>
+      <p style="color:var(--muted);font-size:13px">For large operations.</p>
+      <ul><li>Unlimited cameras</li><li>SLA guarantee</li>
+          <li>Custom CLIP fine-tune</li><li>On-premise option</li>
+          <li>Custom integration</li></ul>
+      <a class="pick" href="mailto:enterprise@your-snappy-host">Contact us</a>
+    </div>
+  </div>
+</section>
+
+<section id="waitlist" class="waitlist">
+  <h2>Be first on the list</h2>
+  <p>Closed beta starts soon. Photographers get priority access + 50% off Pro for life.</p>
+  <form action="#" onsubmit="event.preventDefault();alert('Thanks! Hook this up to Mailgun/ConvertKit/Buttondown');">
+    <input type="email" placeholder="you@example.com" required>
+    <button type="submit">Join the waitlist</button>
+  </form>
+</section>
+
+<footer>
+  <div>© SnapAI · AI event photography</div>
+  <div>
+    <a href="/privacy">Privacy</a>
+    <a href="/terms">Terms</a>
+    <a href="mailto:hello@your-snappy-host">Contact</a>
+  </div>
+</footer>
+
+</div>
+</body>
+</html>
