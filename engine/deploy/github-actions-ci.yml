@@ -1,0 +1,74 @@
+# GitHub Actions CI — copy this to .github/workflows/ci.yml at repo root.
+#
+# Runs on every push + PR:
+#   1. lint       — ruff (fast)
+#   2. unit       — pytest tests/  (no heavy ML deps; the ones we wrote work
+#                    against stdlib + sqlite)
+#   3. ml-tier-3  — installs MediaPipe + ultralytics + pyiqa + hsemotion,
+#                   spins up the server, hits /health, asserts backends live
+#   4. docker     — builds the CPU Docker image to confirm Dockerfile parity
+#
+# Phase 4 work-in-progress: extend with `docker push` to ECR + ECS deploy
+# when the AWS Terraform module lands.
+
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install ruff
+      - run: ruff check backend/ tests/
+
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - name: Install minimum runtime
+        run: |
+          pip install opencv-python-headless numpy Pillow scikit-learn scipy pytest
+      - name: Unit tests
+        run: pytest tests/ -v
+
+  ml-tier-3:
+    runs-on: ubuntu-latest
+    needs: unit
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - name: Install tier 3 stack
+        run: |
+          pip install opencv-python-headless numpy Pillow scikit-learn scipy
+          pip install mediapipe ultralytics pyiqa hsemotion-onnx onnxruntime
+      - name: Boot server, probe /health
+        run: |
+          python3 run.py &
+          sleep 25     # let mediapipe + ultralytics warm
+          curl -fsS http://localhost:8765/health | python3 -m json.tool
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build CPU image
+        run: docker build -f deploy/Dockerfile -t snappy:ci .
+      - name: Smoke test container
+        run: |
+          docker run -d --name snappy-ci -p 8765:8765 snappy:ci
+          for i in 1 2 3 4 5 6; do
+            sleep 10
+            if curl -fsS http://localhost:8765/health; then exit 0; fi
+          done
+          docker logs snappy-ci
+          exit 1

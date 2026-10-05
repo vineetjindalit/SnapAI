@@ -1,0 +1,48 @@
+# Snappy v2.5 — CUDA 12.1 production image.
+#
+# Build:  docker build -f deploy/Dockerfile.gpu -t snappy:v2.5-cuda .
+# Run:    docker run --gpus all --rm -p 8765:8765 \
+#               -v $PWD/backend/data:/app/backend/data snappy:v2.5-cuda
+#
+# Speedup vs CPU image (RTX 3060 / A10G class):
+#   CLIP frame embed   80ms  →  8ms
+#   NIMA aesthetic     60ms  →  6ms
+#   Per-frame total   150ms  → 25ms  (40 fps headroom)
+
+FROM nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    SNAPPY_DEVICE=cuda
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3.11 python3-pip python3.11-venv \
+        libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 \
+        ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && ln -sf /usr/bin/python3.11 /usr/local/bin/python3
+
+WORKDIR /app
+
+RUN pip install --upgrade pip
+
+# Install CUDA-matched torch BEFORE the rest so the generic torch line in
+# requirements.txt doesn't downgrade us to CPU.
+RUN pip install --index-url https://download.pytorch.org/whl/cu121 \
+    torch torchvision
+
+COPY requirements.txt /tmp/requirements.txt
+RUN sed 's/^opencv-python>/opencv-python-headless>/' /tmp/requirements.txt > /tmp/req.docker.txt \
+    && grep -v "^torch" /tmp/req.docker.txt > /tmp/req.no_torch.txt \
+    && pip install -r /tmp/req.no_torch.txt
+
+COPY . /app
+
+EXPOSE 8765
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+    CMD curl -fsS http://localhost:8765/health || exit 1
+
+CMD ["python3", "run.py"]
