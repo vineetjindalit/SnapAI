@@ -1,0 +1,302 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Snappy — Ownership</title>
+<style>
+@page { size: A4; margin: 18mm 16mm; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  font-size: 10.5pt; line-height: 1.55; color: #18181b; max-width: 900px; margin: 0 auto;
+  padding: 28px 32px;
+}
+h1 { font-size: 24pt; color: #1e1b4b; margin: 0 0 4px 0;
+     border-bottom: 3px solid #6366f1; padding-bottom: 6px; }
+h2 { font-size: 17pt; color: #1e1b4b; margin: 28px 0 10px 0;
+     padding-top: 18px; border-top: 1px solid #e5e7eb; }
+h3 { font-size: 13pt; color: #4338ca; margin: 18px 0 6px 0; }
+h4 { font-size: 11pt; color: #1e293b; margin: 12px 0 4px 0; }
+p, li { margin: 4px 0; }
+blockquote { border-left: 3px solid #6366f1; padding: 6px 14px;
+  background: #eef2ff; margin: 12px 0; color: #1e1b4b; font-size: 10pt; }
+code { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 9.5pt;
+  background: #f1f5f9; padding: 1px 5px; border-radius: 3px; color: #0f172a; }
+pre { background: #0f172a; color: #f1f5f9; padding: 10px 12px;
+  border-radius: 6px; overflow-x: auto; font-size: 9pt; line-height: 1.45; }
+pre code { background: transparent; color: inherit; padding: 0; }
+table { border-collapse: collapse; width: 100%; margin: 10px 0;
+  font-size: 9.5pt; page-break-inside: avoid; }
+th { background: #1e1b4b; color: #ffffff; font-weight: 600;
+  padding: 6px 8px; text-align: left; border: 1px solid #312e81; }
+td { padding: 5px 8px; border: 1px solid #e5e7eb; vertical-align: top; }
+tr:nth-child(even) td { background: #f8fafc; }
+ul, ol { padding-left: 22px; margin: 6px 0; }
+hr { border: none; border-top: 1px dashed #cbd5e1; margin: 20px 0; }
+.cover { text-align: center; padding: 80px 0 40px 0; page-break-after: always; }
+.cover h1 { border: none; font-size: 38pt; }
+.cover .sub { font-size: 14pt; color: #475569; margin-top: 4px; }
+.cover .meta { font-size: 10pt; color: #64748b; margin-top: 36px; }
+.toc { page-break-after: always; }
+.toc h2 { border: none; padding-top: 0; }
+.toc ol { font-size: 11pt; line-height: 2; }
+.tag-ok   { color: #15803d; font-weight: 600; }
+.tag-warn { color: #b45309; font-weight: 600; }
+.tag-bad  { color: #b91c1c; font-weight: 600; }
+@media print {
+  body { padding: 0; }
+  h2 { page-break-before: auto; }
+  h2, h3, h4 { page-break-after: avoid; }
+  table, pre, blockquote { page-break-inside: avoid; }
+}
+</style></head><body>
+
+    <section class="cover">
+      <h1>SNAPPY</h1>
+      <div class="sub">Sprint Ownership — who does what</div>
+      <div class="meta">Engineering plan · Cost model · Pre-launch checklist</div>
+    </section>
+<h1>SnapAI — Sprint Ownership Map</h1>
+
+<p>For every remaining task in the launch roadmap, who's on point.</p>
+
+<p>Legend:</p>
+<ul>
+<li>🤖 <strong>ME</strong> — I do alone. You say "go" and I deliver.</li>
+<li>🤝 <strong>BOTH</strong> — I write the code; you provide a key/account/asset I can't generate.</li>
+<li>👤 <strong>YOU</strong> — Only you can do this. No developer substitution exists.</li>
+</ul>
+
+<hr/>
+
+<h2>SPRINT 1 — "Shippable to friends" (weeks 1–2)</h2>
+
+<table>
+<thead><tr><th>Task</th><th>Owner</th><th>What blocks it</th><th>Effort</th></tr></thead>
+<tbody>
+<tr><td>Enforce JWT on <code>/sessions/*</code> routes</td><td>🤖 ME</td><td>nothing</td><td>1 day</td></tr>
+<tr><td>Add <code>/auth/register</code> + <code>/auth/login</code> HTTP endpoints</td><td>🤖 ME</td><td>nothing</td><td>1 day</td></tr>
+<tr><td>Add <code>owner_id</code> column to sessions, enforce isolation</td><td>🤖 ME</td><td>nothing</td><td>1 day</td></tr>
+<tr><td>Email verification flow (sign-up → verify link → activate)</td><td>🤝 BOTH</td><td>YOU: Mailgun/SendGrid free-tier API key</td><td>1 day</td></tr>
+<tr><td>Forgot-password flow</td><td>🤝 BOTH</td><td>same email service</td><td>half day</td></tr>
+<tr><td>Server-side eval harness — runs full pipeline on a video, scores precision/recall vs your timestamp annotations</td><td>🤝 BOTH</td><td>YOU: 1 short event video + a CSV of "keeper moment" timestamps</td><td>1 day</td></tr>
+<tr><td>Sprint-1 unit tests + smoke tests</td><td>🤖 ME</td><td>nothing</td><td>half day</td></tr>
+</tbody></table>
+
+<p><strong>You provide before I start:</strong> Mailgun OR SendGrid API key (signup is free), one short event video with keeper timestamps.</p>
+
+<hr/>
+
+<h2>SPRINT 2 — "Deploy to AWS" (weeks 3–4)</h2>
+
+<table>
+<thead><tr><th>Task</th><th>Owner</th><th>What blocks it</th><th>Effort</th></tr></thead>
+<tbody>
+<tr><td>Terraform module: VPC + EC2 (single instance) + RDS Postgres + S3 bucket + IAM</td><td>🤝 BOTH</td><td>YOU: AWS account + IAM credentials</td><td>2 days</td></tr>
+<tr><td><code>pip install psycopg2</code>; rewrite <code>utils/persistence.py</code> to support both SQLite and Postgres via env var</td><td>🤖 ME</td><td>nothing</td><td>2 days</td></tr>
+<tr><td>Replace local <code>captures/</code> filesystem with S3 boto3 uploads</td><td>🤝 BOTH</td><td>YOU: AWS account active</td><td>1 day</td></tr>
+<tr><td>Signed CloudFront URLs for album sharing (expire after 7 days)</td><td>🤝 BOTH</td><td>AWS</td><td>1 day</td></tr>
+<tr><td>Health check + auto-restart via systemd unit</td><td>🤖 ME</td><td>nothing</td><td>half day</td></tr>
+<tr><td>CloudWatch log shipping</td><td>🤝 BOTH</td><td>AWS</td><td>half day</td></tr>
+<tr><td>Domain DNS pointing to load balancer</td><td>👤 YOU</td><td>–</td><td>30 min</td></tr>
+<tr><td>HTTPS via AWS Certificate Manager</td><td>👤 YOU + 🤖 ME</td><td>YOU: domain</td><td>1 hour</td></tr>
+<tr><td>Reduce Docker image size (multi-stage build)</td><td>🤖 ME</td><td>nothing</td><td>1 day</td></tr>
+</tbody></table>
+
+<p><strong>You provide before I start:</strong> AWS account with billing alarm at $100/mo, IAM user with admin access (we'll lock down later), domain registered + nameservers under your control.</p>
+
+<p><strong>You decide:</strong> EU vs US region for first deployment (matters for GDPR).</p>
+
+<hr/>
+
+<h2>SPRINT 3 — "iOS mobile app" (weeks 5–7)</h2>
+
+<table>
+<thead><tr><th>Task</th><th>Owner</th><th>What blocks it</th><th>Effort</th></tr></thead>
+<tbody>
+<tr><td>React Native scaffold + navigation</td><td>🤖 ME</td><td>nothing</td><td>2 days</td></tr>
+<tr><td>Camera screen with native iOS camera APIs</td><td>🤖 ME</td><td>nothing</td><td>3 days</td></tr>
+<tr><td>WebSocket client to existing server</td><td>🤖 ME</td><td>nothing</td><td>1 day</td></tr>
+<tr><td>Album viewer + share sheet integration</td><td>🤖 ME</td><td>nothing</td><td>2 days</td></tr>
+<tr><td>Login / register screens</td><td>🤖 ME</td><td>nothing</td><td>2 days</td></tr>
+<tr><td>Push notifications (capture alerts)</td><td>🤝 BOTH</td><td>YOU: Apple Developer Program + APNs cert</td><td>2 days</td></tr>
+<tr><td>TestFlight build</td><td>🤝 BOTH</td><td>YOU: provisioning profile + bundle ID</td><td>1 day</td></tr>
+<tr><td>App icons / splash screen artwork</td><td>👤 YOU</td><td>designer or AI image gen</td><td>1 day (yours)</td></tr>
+<tr><td>App Store screenshots (5 sizes per iOS device)</td><td>👤 YOU</td><td>–</td><td>2–3 hours</td></tr>
+<tr><td>App Store description, keywords, privacy disclosures</td><td>👤 YOU</td><td>–</td><td>1–2 hours</td></tr>
+<tr><td>Privacy policy URL (must be public before submission)</td><td>👤 YOU</td><td>template + lawyer review</td><td>varies</td></tr>
+<tr><td>Beta-test recruiting (5+ users)</td><td>👤 YOU</td><td>–</td><td>ongoing</td></tr>
+<tr><td>QA — actually run on 3 real events</td><td>👤 YOU</td><td>–</td><td>varies</td></tr>
+</tbody></table>
+
+<p><strong>You provide before I start:</strong> Apple Developer Program enrolment ($99/year, 24–48 hr verification).</p>
+
+<p><strong>Hard truth:</strong> App Store review takes 1–7 days and they reject apps for surprising reasons (camera privacy disclosure language, vague descriptions, weak onboarding). Budget 2 cycles.</p>
+
+<hr/>
+
+<h2>SPRINT 4 — "Billing" (weeks 8–9)</h2>
+
+<table>
+<thead><tr><th>Task</th><th>Owner</th><th>What blocks it</th><th>Effort</th></tr></thead>
+<tbody>
+<tr><td>Stripe Checkout integration (subscription tier selection → payment → webhook)</td><td>🤝 BOTH</td><td>YOU: Stripe account + API keys</td><td>3 days</td></tr>
+<tr><td>Webhook handler for <code>customer.subscription.*</code> events</td><td>🤖 ME</td><td>nothing</td><td>1 day</td></tr>
+<tr><td>Trial-end logic: downgrade after 14 days unless paid</td><td>🤖 ME</td><td>nothing</td><td>1 day</td></tr>
+<tr><td>Settings page (cancel subscription, update payment method, see usage)</td><td>🤖 ME</td><td>nothing</td><td>2 days</td></tr>
+<tr><td>Usage counters in DB (events/month per user)</td><td>🤖 ME</td><td>nothing</td><td>half day</td></tr>
+<tr><td>Tier enforcement at runtime (Free = 3 events; Pro = unlimited)</td><td>🤖 ME</td><td>nothing</td><td>1 day</td></tr>
+<tr><td>Email templates: welcome, payment failed, trial ending</td><td>🤖 ME</td><td>nothing</td><td>1 day</td></tr>
+<tr><td>Tax handling (Stripe Tax)</td><td>👤 YOU</td><td>configure in Stripe dashboard</td><td>30 min</td></tr>
+<tr><td>Invoice / receipt format</td><td>👤 YOU</td><td>mostly Stripe defaults</td><td>30 min</td></tr>
+<tr><td>Pricing decision (PDF defaults: Free / $49 / $149 / Custom)</td><td>👤 YOU</td><td>–</td><td>–</td></tr>
+<tr><td>Refund policy</td><td>👤 YOU</td><td>–</td><td>–</td></tr>
+<tr><td>Business entity for Stripe (LLC / sole prop / etc.)</td><td>👤 YOU</td><td>accountant / online incorporation</td><td>varies</td></tr>
+</tbody></table>
+
+<p><strong>You provide before I start:</strong> Stripe account (verified business), pricing tier values, refund policy text.</p>
+
+<hr/>
+
+<h2>SPRINT 5 — "Scale + polish" (weeks 10–11)</h2>
+
+<table>
+<thead><tr><th>Task</th><th>Owner</th><th>What blocks it</th><th>Effort</th></tr></thead>
+<tbody>
+<tr><td>Redis pub/sub for cross-instance session state</td><td>🤝 BOTH</td><td>YOU: ElastiCache or Upstash account</td><td>2 days</td></tr>
+<tr><td>Load testing with k6 (simulate 100 concurrent cameras)</td><td>🤖 ME</td><td>nothing</td><td>1 day</td></tr>
+<tr><td>Auto-scaling group config (scale up at 70% CPU)</td><td>🤝 BOTH</td><td>AWS</td><td>1 day</td></tr>
+<tr><td>Admin dashboard (revenue, MRR, active sessions, errors)</td><td>🤖 ME</td><td>nothing</td><td>3 days</td></tr>
+<tr><td>Onboarding wizard (first event walkthrough)</td><td>🤖 ME</td><td>nothing</td><td>2 days</td></tr>
+<tr><td>Sentry integration</td><td>🤝 BOTH</td><td>YOU: free Sentry account</td><td>half day</td></tr>
+<tr><td>Status page (status.snappy.example.com)</td><td>🤝 BOTH</td><td>YOU: Statuspage / Better Stack account</td><td>1 day</td></tr>
+<tr><td>Backup automation (RDS snapshots, S3 versioning)</td><td>🤖 ME</td><td>nothing</td><td>half day</td></tr>
+<tr><td>Disaster recovery test (restore from snapshot)</td><td>🤝 BOTH</td><td>AWS</td><td>1 day</td></tr>
+</tbody></table>
+
+<p><strong>You provide before I start:</strong> Sentry, Statuspage (or alternative) free accounts.</p>
+
+<hr/>
+
+<h2>SPRINT 6 — "Android + public launch" (weeks 12–14)</h2>
+
+<table>
+<thead><tr><th>Task</th><th>Owner</th><th>What blocks it</th><th>Effort</th></tr></thead>
+<tbody>
+<tr><td>Android React Native build (~80% reuse from iOS)</td><td>🤖 ME</td><td>nothing</td><td>3 days</td></tr>
+<tr><td>Android camera permissions + native modules</td><td>🤖 ME</td><td>nothing</td><td>1 day</td></tr>
+<tr><td>Google Play Console listing + APK upload</td><td>🤝 BOTH</td><td>YOU: Play Console account ($25 one-time)</td><td>1 day</td></tr>
+<tr><td>Google Play screenshots, copy, content rating</td><td>👤 YOU</td><td>–</td><td>2 hours</td></tr>
+<tr><td>Marketing site (Next.js, hero + features + pricing)</td><td>🤖 ME</td><td>nothing</td><td>3 days</td></tr>
+<tr><td>Marketing copy + brand voice</td><td>👤 YOU</td><td>–</td><td>varies</td></tr>
+<tr><td>Demo video (60s, before/after AI captures)</td><td>👤 YOU</td><td>screen + edit</td><td>1 day</td></tr>
+<tr><td>Marketing site domain pointed at Vercel/Netlify</td><td>👤 YOU</td><td>–</td><td>30 min</td></tr>
+<tr><td>Launch announcement: Product Hunt, HN, Reddit, LinkedIn</td><td>👤 YOU</td><td>–</td><td>1 day</td></tr>
+<tr><td>Affiliate / referral system (the PDF said 20% commission)</td><td>🤖 ME</td><td>nothing</td><td>2 days</td></tr>
+<tr><td>Customer support tooling (Intercom widget)</td><td>🤝 BOTH</td><td>YOU: Intercom or Crisp account</td><td>half day</td></tr>
+<tr><td>Studio API for white-label use</td><td>🤖 ME</td><td>nothing</td><td>3 days</td></tr>
+</tbody></table>
+
+<p><strong>You provide before I start:</strong> Play Console account + signing keys, brand-finalised marketing copy, demo video.</p>
+
+<hr/>
+
+<h2>NON-SPRINT TASKS (parallel work you should start NOW)</h2>
+
+<p>These don't fit a sprint but block launch. Do them while I work.</p>
+
+<h3>👤 YOU only — start in week 1</h3>
+
+<table>
+<thead><tr><th>Task</th><th>Effort</th><th>Why critical</th></tr></thead>
+<tbody>
+<tr><td>Domain registration</td><td>1 hour</td><td>Sprint 2 needs it</td></tr>
+<tr><td>AWS account + billing alarm</td><td>1 hour</td><td>Sprint 2</td></tr>
+<tr><td>Apple Developer enrolment ($99)</td><td>24–48 hr verify</td><td>Sprint 3 — it gates iOS work</td></tr>
+<tr><td>Google Play Console enrolment ($25)</td><td>instant</td><td>Sprint 6</td></tr>
+<tr><td>Stripe business verification</td><td>1–3 days</td><td>Sprint 4</td></tr>
+<tr><td><strong>30 hours of labelled real event video</strong></td><td>20–40 human-hours</td><td>The single biggest accuracy lever. No engineering substitute.</td></tr>
+<tr><td>Privacy policy + Terms of Service (template + lawyer review)</td><td>$200–1500</td><td>Required before App Store submission</td></tr>
+<tr><td>GDPR review (if EU customers)</td><td>$1–3K external</td><td>Pre-launch</td></tr>
+<tr><td>External security audit</td><td>$3–5K external</td><td>Pre-launch (Tier γ only)</td></tr>
+<tr><td>5 reference photographer relationships</td><td>weeks of outreach</td><td>Tier γ — for case studies + word-of-mouth</td></tr>
+<tr><td>Brand finalised (logo, colours, voice)</td><td>designer fee</td><td>Sprint 6</td></tr>
+<tr><td>Marketing copy + value props</td><td>depends on you</td><td>Sprint 6</td></tr>
+<tr><td>Demo video script + recording</td><td>1 day</td><td>Sprint 6</td></tr>
+<tr><td>Discord/Slack community setup</td><td>1 hour</td><td>Sprint 6+</td></tr>
+<tr><td>Trade show calendar (WPPI Mar, Imaging USA Jan)</td><td>research</td><td>Phase 5</td></tr>
+</tbody></table>
+
+<hr/>
+
+<h2>What I CAN do that's not in any sprint</h2>
+
+<p>If you want me to do something I haven't listed, here's my menu:</p>
+
+<h3>Available on demand from me alone (🤖)</h3>
+
+<ul>
+<li>Any code in the existing stack (refactor, optimise, new endpoints, new ML models)</li>
+<li>Test coverage expansion (currently ~30 tests; can grow to 100+)</li>
+<li>Eval harnesses against any data you provide</li>
+<li>LoRA fine-tune notebook for Colab (you upload + run)</li>
+<li>More ML models (FaceXFormer, EmoNet, anything pip-installable)</li>
+<li>Schedule/Markov next-moment predictor (the cheap one we discussed)</li>
+<li>Documentation, ARCHITECTURE diagrams, ADRs (architecture decision records)</li>
+<li>Bug fixes for anything you screenshot or log</li>
+<li>Performance profiling + optimisation</li>
+<li>Migration scripts (SQLite → Postgres → anything else)</li>
+<li>Internationalisation (i18n) for the web frontend</li>
+<li>Accessibility audit + WCAG fixes</li>
+</ul>
+
+<h3>Available with your asset/key (🤝)</h3>
+
+<ul>
+<li>Anything that needs an external service (AWS, Stripe, Sentry, Mailgun, Apple, Google, Cloudflare, OpenAI/Anthropic API for LLM features) — give me the key, I integrate it</li>
+<li>Anything that needs YOUR data (videos, photos, labels, customer feedback)</li>
+<li>Anything that needs YOUR decision (pricing, copy, tier limits, support hours)</li>
+</ul>
+
+<h3>Things I FUNDAMENTALLY can't do (👤)</h3>
+
+<ul>
+<li>Create accounts that need a real human's identity</li>
+<li>Sign legal documents</li>
+<li>Pay for anything</li>
+<li>Conduct interviews / sales calls / customer development</li>
+<li>Take photos / record demo videos myself</li>
+<li>Submit to App Store / Play Store (must come from your developer account)</li>
+<li>Get press coverage</li>
+<li>Hire people</li>
+<li>Make business strategy decisions</li>
+</ul>
+
+<hr/>
+
+<h2>"What do I do this week?" — the simplest version</h2>
+
+<table>
+<thead><tr><th>Week</th><th>YOU do</th><th>I do (if you say go)</th></tr></thead>
+<tbody>
+<tr><td><strong>Week 0 (now)</strong></td><td>Buy domain. Create AWS account. Apple Dev enrolment ($99). Sign up Mailgun + Sentry free tiers. Record + label one short event video.</td><td>Wait for the above; refactor/eval-harness work that doesn't need accounts.</td></tr>
+<tr><td><strong>Week 1–2</strong></td><td>Test sprint-1 build, give feedback, recruit 5 beta testers.</td><td>Sprint 1 — auth + isolation + eval harness.</td></tr>
+<tr><td><strong>Week 3–4</strong></td><td>Watch the deploy land at your domain. Sign up Stripe.</td><td>Sprint 2 — AWS + Postgres + S3.</td></tr>
+<tr><td><strong>Week 5–7</strong></td><td>App Store screenshots, marketing copy, recruit beta testers.</td><td>Sprint 3 — iOS app + TestFlight.</td></tr>
+<tr><td><strong>Week 8–9</strong></td><td>Pricing decisions. Refund policy. Tax setup in Stripe.</td><td>Sprint 4 — billing.</td></tr>
+<tr><td><strong>Week 10–11</strong></td><td>Sign up Sentry/Statuspage. Test admin dashboard.</td><td>Sprint 5 — scale + polish.</td></tr>
+<tr><td><strong>Week 12–14</strong></td><td>Demo video. Press kit. Product Hunt prep. Trade show prep.</td><td>Sprint 6 — Android + launch.</td></tr>
+</tbody></table>
+
+<hr/>
+
+<h2>TL;DR</h2>
+
+<ul>
+<li><strong>Things ONLY YOU can do:</strong> account creation, money, real-world data collection, business decisions, legal review, marketing/sales.</li>
+<li><strong>Things ONLY I can do:</strong> all the code, infrastructure-as-code, tests, ML model integration, eval harnesses.</li>
+<li><strong>Things we BOTH do:</strong> anything that needs both an account/key (yours) and code wiring (mine).</li>
+</ul>
+
+<p>In the 14-week launch plan, <strong>roughly 70% of effort is mine, 30% is yours</strong> — but your 30% includes the most critical bottlenecks (real event data, accounts, decisions, legal). Without them, my 70% has nothing to ship.</p>
+
+<p><strong>Send me sprint-1 inputs (Mailgun key + one labelled event video + AWS account) and I start the same day.</strong></p>
+</body></html>
