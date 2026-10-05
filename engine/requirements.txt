@@ -1,0 +1,33 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# SNAPPY MODEL ZOO — graceful degradation by tier
+# ═══════════════════════════════════════════════════════════════════════════
+# The server runs at every tier. Each tier just unlocks higher accuracy.
+# Install in order: tier 1 is mandatory, then add tiers as you want them.
+#
+# Tier ─ what it unlocks ─────────────────────────────── target accuracy
+#   1.  Core image pipeline                                ~60% (heuristic)
+#   2.  MediaPipe FaceMesh + iris + blendshapes            ~80%
+#   3.  YOLOv8-face + NIMA aesthetic + HSEmotion FER       ~90%
+#   4.  Real CLIP ViT-B/32 (moment detection)              ~92%+ on moments
+#
+# ═══════════════════════════════════════════════════════════════════════════
+
+# ── Tier 1 (mandatory) ───────────────────────────────────────────────────
+opencv-python>=4.8
+numpy>=1.24,<2.0
+Pillow>=9.0
+scikit-learn>=1.2
+scipy>=1.10
+
+# ── Tier 2: MediaPipe (face mesh + iris + blendshape emotion) ────────────
+mediapipe>=0.10.9
+
+# ── Tier 3: production face / aesthetic / emotion models ────────────────
+ultralytics>=8.1            # YOLOv8-face — auto-downloads ~6 MB weights
+pyiqa>=0.1.10               # NIMA aesthetic — auto-downloads ~95 MB weights
+hsemotion-onnx>=0.0.4       # AffectNet FER — auto-downloads ~5 MB ONNX
+onnxruntime>=1.16
+
+# ── Tier 4: real CLIP for moment detection ──────────────────────────────
+torch>=2.1                  # CPU wheel works; ~500 MB
+transformers>=4.38,<5       # CLIP loader; pin <5 -- 5.x changed get_text_features() return type and breaks clip_engine.py
