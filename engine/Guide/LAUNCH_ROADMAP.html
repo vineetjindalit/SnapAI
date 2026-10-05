@@ -1,0 +1,486 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Snappy — Launch Roadmap</title>
+<style>
+@page { size: A4; margin: 18mm 16mm; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  font-size: 10.5pt; line-height: 1.55; color: #18181b; max-width: 900px; margin: 0 auto;
+  padding: 28px 32px;
+}
+h1 { font-size: 24pt; color: #1e1b4b; margin: 0 0 4px 0;
+     border-bottom: 3px solid #6366f1; padding-bottom: 6px; }
+h2 { font-size: 17pt; color: #1e1b4b; margin: 28px 0 10px 0;
+     padding-top: 18px; border-top: 1px solid #e5e7eb; }
+h3 { font-size: 13pt; color: #4338ca; margin: 18px 0 6px 0; }
+h4 { font-size: 11pt; color: #1e293b; margin: 12px 0 4px 0; }
+p, li { margin: 4px 0; }
+blockquote { border-left: 3px solid #6366f1; padding: 6px 14px;
+  background: #eef2ff; margin: 12px 0; color: #1e1b4b; font-size: 10pt; }
+code { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 9.5pt;
+  background: #f1f5f9; padding: 1px 5px; border-radius: 3px; color: #0f172a; }
+pre { background: #0f172a; color: #f1f5f9; padding: 10px 12px;
+  border-radius: 6px; overflow-x: auto; font-size: 9pt; line-height: 1.45; }
+pre code { background: transparent; color: inherit; padding: 0; }
+table { border-collapse: collapse; width: 100%; margin: 10px 0;
+  font-size: 9.5pt; page-break-inside: avoid; }
+th { background: #1e1b4b; color: #ffffff; font-weight: 600;
+  padding: 6px 8px; text-align: left; border: 1px solid #312e81; }
+td { padding: 5px 8px; border: 1px solid #e5e7eb; vertical-align: top; }
+tr:nth-child(even) td { background: #f8fafc; }
+ul, ol { padding-left: 22px; margin: 6px 0; }
+hr { border: none; border-top: 1px dashed #cbd5e1; margin: 20px 0; }
+.cover { text-align: center; padding: 80px 0 40px 0; page-break-after: always; }
+.cover h1 { border: none; font-size: 38pt; }
+.cover .sub { font-size: 14pt; color: #475569; margin-top: 4px; }
+.cover .meta { font-size: 10pt; color: #64748b; margin-top: 36px; }
+.toc { page-break-after: always; }
+.toc h2 { border: none; padding-top: 0; }
+.toc ol { font-size: 11pt; line-height: 2; }
+.tag-ok   { color: #15803d; font-weight: 600; }
+.tag-warn { color: #b45309; font-weight: 600; }
+.tag-bad  { color: #b91c1c; font-weight: 600; }
+@media print {
+  body { padding: 0; }
+  h2 { page-break-before: auto; }
+  h2, h3, h4 { page-break-after: avoid; }
+  table, pre, blockquote { page-break-inside: avoid; }
+}
+</style></head><body>
+
+    <section class="cover">
+      <h1>SNAPPY</h1>
+      <div class="sub">Launch Roadmap — v2.5 → v3.0 Production</div>
+      <div class="meta">Engineering plan · Cost model · Pre-launch checklist</div>
+    </section>
+<h1>SnapAI — Launch Roadmap (v2.5 → v3.0 Production)</h1>
+
+<blockquote>
+<strong>Honest status as of today:</strong> v2.5 is a feature-complete laptop<br/>
+prototype with a tier-3 model zoo, online learning, voice prompts,<br/>
+auto-classifier, multi-threaded pipeline, JWT auth scaffolding, Docker<br/>
+images, and CI templates. <strong>It is not yet a production SaaS.</strong><br/>
+<br/>
+<strong>Gap between today and "money-in-the-bank":</strong> approximately 8–14 weeks<br/>
+of focused work split between engineering (me) and decisions/spend<br/>
+(you). This document tells you exactly what's left and who does it.<br/>
+</blockquote>
+
+<hr/>
+
+<h2>1. Where v2.5 stands vs the PDF roadmap</h2>
+
+<h3>Phase 1 — Foundation Hardening: <span class="tag-ok">✅</span> ~95% done</h3>
+<p>Everything except 50 hand-written unit tests (we have ~30). Multi-thread</p>
+<p>pipeline, MediaPipe, iris gaze, SQLite, logging, env-var tuning are all</p>
+<p>in. <strong>Status: production-ready.</strong></p>
+
+<h3>Phase 2 — AI Model Upgrades: <span class="tag-ok">✅</span> ~85% done</h3>
+<p>Real CLIP, NIMA, YOLOv8-face, HSEmotion, online learning, auto-classifier,</p>
+<p>calibration are all wired. <strong>Open items:</strong></p>
+<ul>
+<li>Bootstrap dataset finetune (you're running it)</li>
+<li>LoRA fine-tune of CLIP (needs GPU, ~4 hrs on Colab T4 — not done)</li>
+<li>Confidence calibration on real feedback (works, just needs feedback events)</li>
+<li>A/B harness against real event videos (needs your event data)</li>
+</ul>
+
+<h3>Phase 3 — Product &amp; Mobile App: <span class="tag-warn">⚠️</span> ~35% done</h3>
+<p>The shippable-product layer.</p>
+
+<table>
+<thead><tr><th>PDF item</th><th>Done?</th><th>Owner</th><th>Effort to finish</th></tr></thead>
+<tbody>
+<tr><td>Native iOS+Android camera app</td><td><span class="tag-bad">❌</span></td><td>ME</td><td><strong>3–4 weeks</strong></td></tr>
+<tr><td>Polished React web dashboard</td><td><span class="tag-warn">⚠️</span> basic HTML</td><td>ME</td><td>1 week</td></tr>
+<tr><td>JWT auth enforced + register/login</td><td><span class="tag-warn">⚠️</span> scaffolding</td><td>ME</td><td>2–3 days</td></tr>
+<tr><td>Album delivery UI (drag-to-reorder, share links)</td><td><span class="tag-warn">⚠️</span> basic</td><td>ME</td><td>4 days</td></tr>
+<tr><td>Push notifications ("great moment captured!")</td><td><span class="tag-bad">❌</span></td><td>ME</td><td>3 days</td></tr>
+<tr><td>Photographer settings panel</td><td><span class="tag-warn">⚠️</span> env vars only</td><td>ME</td><td>2 days</td></tr>
+<tr><td>QA on 3 real events</td><td><span class="tag-bad">❌</span></td><td>YOU</td><td>varies</td></tr>
+<tr><td>App Store + Play Store submission</td><td><span class="tag-bad">❌</span></td><td>YOU + ME</td><td>1–2 weeks</td></tr>
+</tbody></table>
+
+<h3>Phase 4 — Cloud Infrastructure &amp; Scale: <span class="tag-warn">⚠️</span> ~25% done</h3>
+<p>The runs-without-your-laptop layer.</p>
+
+<table>
+<thead><tr><th>PDF item</th><th>Done?</th><th>Owner</th><th>Effort to finish</th></tr></thead>
+<tbody>
+<tr><td>Docker (CPU + GPU)</td><td><span class="tag-ok">✅</span></td><td>done</td><td>–</td></tr>
+<tr><td>docker-compose for local</td><td><span class="tag-ok">✅</span></td><td>done</td><td>–</td></tr>
+<tr><td>GitHub Actions CI</td><td><span class="tag-ok">✅</span> template</td><td>YOU adds secrets</td><td>1 hour</td></tr>
+<tr><td>AWS Terraform module</td><td><span class="tag-bad">❌</span></td><td>ME</td><td><strong>1 week</strong></td></tr>
+<tr><td>S3 photo storage + CloudFront CDN</td><td><span class="tag-bad">❌</span></td><td>ME</td><td>4 days</td></tr>
+<tr><td>Migrate SQLite → PostgreSQL (RDS)</td><td><span class="tag-bad">❌</span></td><td>ME</td><td>1 week</td></tr>
+<tr><td>Redis pub/sub for multi-instance</td><td><span class="tag-bad">❌</span></td><td>ME</td><td>4 days</td></tr>
+<tr><td>Stripe billing integration</td><td><span class="tag-bad">❌</span></td><td>ME</td><td>1 week</td></tr>
+<tr><td>Multi-tenant isolation enforced</td><td><span class="tag-warn">⚠️</span></td><td>ME</td><td>3 days</td></tr>
+<tr><td>Admin dashboard (revenue, sessions)</td><td><span class="tag-bad">❌</span></td><td>ME</td><td>1 week</td></tr>
+<tr><td>Security audit + pen-test</td><td><span class="tag-bad">❌</span></td><td>YOU (vendor)</td><td>$3–5K, 2 weeks</td></tr>
+<tr><td>GDPR compliance + auto-delete</td><td><span class="tag-bad">❌</span></td><td>ME</td><td>4 days</td></tr>
+<tr><td>Load testing (100 simultaneous)</td><td><span class="tag-bad">❌</span></td><td>ME</td><td>3 days</td></tr>
+</tbody></table>
+
+<h3>Phase 5 — Market Launch (PDF months 13–18): <span class="tag-bad">❌</span> 0% done</h3>
+<p>This is product-market work, not engineering. Mostly your domain. See §5</p>
+<p>of this doc.</p>
+
+<hr/>
+
+<h2>2. The minimum viable launch — what MUST be done</h2>
+
+<p>I'm splitting this into three release tiers so you can launch incrementally</p>
+<p>instead of waiting for everything.</p>
+
+<h3>Tier α — Closed beta (you + 5 friends, no payment)</h3>
+<p><strong>Purpose:</strong> validate the product on real events. <strong>Cost:</strong> $0–50.</p>
+<p><strong>Time:</strong> 2 weeks of engineering once we start.</p>
+
+<table>
+<thead><tr><th>Must have</th><th>Status</th><th>Owner</th></tr></thead>
+<tbody>
+<tr><td>JWT auth enforced on <code>/sessions/*</code></td><td><span class="tag-warn">⚠️</span> not enforced</td><td>ME (2 days)</td></tr>
+<tr><td>Register / login endpoints</td><td><span class="tag-bad">❌</span></td><td>ME (1 day)</td></tr>
+<tr><td>Per-user data isolation (you can't see my photos)</td><td><span class="tag-bad">❌</span></td><td>ME (2 days)</td></tr>
+<tr><td>Domain name with HTTPS</td><td><span class="tag-bad">❌</span></td><td>YOU ($12/year + 1 hour)</td></tr>
+<tr><td>Deployable single-container hosting</td><td><span class="tag-warn">⚠️</span> Docker only</td><td>YOU + ME (3 days)</td></tr>
+<tr><td>Bug-fix the video upload + at least 1 real event tested</td><td><span class="tag-warn">⚠️</span></td><td>YOU (test) + ME</td></tr>
+<tr><td>Privacy policy + terms (template, not lawyer-reviewed)</td><td><span class="tag-bad">❌</span></td><td>YOU (template online, 2 hrs)</td></tr>
+</tbody></table>
+
+<p><strong>Result:</strong> snappy.example.com, friends can sign up, upload videos or</p>
+<p>stream live, get an album. No money changing hands.</p>
+
+<h3>Tier β — Public beta (paid waitlist, 50 users)</h3>
+<p><strong>Purpose:</strong> validate willingness-to-pay. <strong>Cost:</strong> $200–500/mo.</p>
+<p><strong>Time:</strong> +4 weeks engineering on top of α.</p>
+
+<table>
+<thead><tr><th>Must have</th><th>Status</th><th>Owner</th></tr></thead>
+<tbody>
+<tr><td>Stripe Checkout (one-time signup fee for waitlist)</td><td><span class="tag-bad">❌</span></td><td>ME (1 week)</td></tr>
+<tr><td>AWS deployment (EC2 + RDS + S3)</td><td><span class="tag-bad">❌</span></td><td>ME (1 week)</td></tr>
+<tr><td>Postgres migration</td><td><span class="tag-bad">❌</span></td><td>ME (1 week)</td></tr>
+<tr><td>Reserved IP / load balancer</td><td><span class="tag-bad">❌</span></td><td>YOU (config)</td></tr>
+<tr><td>Polished React Native mobile app (iOS first)</td><td><span class="tag-bad">❌</span></td><td>ME (3 weeks parallel)</td></tr>
+<tr><td>Mailgun/SendGrid for transactional email</td><td><span class="tag-bad">❌</span></td><td>YOU (account) + ME (1 day)</td></tr>
+<tr><td>Sentry / error tracking</td><td><span class="tag-bad">❌</span></td><td>YOU (account) + ME (half day)</td></tr>
+<tr><td>Onboarding flow (first event wizard)</td><td><span class="tag-bad">❌</span></td><td>ME (1 week)</td></tr>
+</tbody></table>
+
+<h3>Tier γ — General availability (production paid SaaS)</h3>
+<p><strong>Purpose:</strong> real revenue. <strong>Cost:</strong> $500–2000/mo at first 100 users.</p>
+<p><strong>Time:</strong> +6 weeks on top of β.</p>
+
+<table>
+<thead><tr><th>Must have</th><th>Status</th><th>Owner</th></tr></thead>
+<tbody>
+<tr><td>Native Android app</td><td><span class="tag-bad">❌</span></td><td>ME (2 weeks parallel)</td></tr>
+<tr><td>App Store + Play Store listings</td><td><span class="tag-bad">❌</span></td><td>YOU ($99 + $25) + ME</td></tr>
+<tr><td>Referral / affiliate system</td><td><span class="tag-bad">❌</span></td><td>ME (1 week)</td></tr>
+<tr><td>Admin dashboard</td><td><span class="tag-bad">❌</span></td><td>ME (1 week)</td></tr>
+<tr><td>Security audit (external firm)</td><td><span class="tag-bad">❌</span></td><td>YOU ($3–5K)</td></tr>
+<tr><td>GDPR compliance audit</td><td><span class="tag-bad">❌</span></td><td>YOU (or DPO consultant, $1–3K)</td></tr>
+<tr><td>Load test ≥ 100 concurrent</td><td><span class="tag-bad">❌</span></td><td>ME (3 days)</td></tr>
+<tr><td>Real-event SLA / uptime monitoring</td><td><span class="tag-bad">❌</span></td><td>ME (2 days)</td></tr>
+<tr><td>Studio API (white-label)</td><td><span class="tag-bad">❌</span></td><td>ME (2 weeks)</td></tr>
+<tr><td>Customer support tooling (Intercom etc.)</td><td><span class="tag-bad">❌</span></td><td>YOU (account) + ME (1 day)</td></tr>
+</tbody></table>
+
+<hr/>
+
+<h2>3. Things ONLY YOU can do (no developer can)</h2>
+
+<p>These block launch and have no engineering substitute. Do them in</p>
+<p>parallel with my work to avoid serial delay.</p>
+
+<h3>Accounts to create (1 day, ~$200 setup)</h3>
+<ul>
+<li>[ ] <strong>Domain registration</strong> — Namecheap/Cloudflare ($12/yr)</li>
+<li>[ ] <strong>AWS account</strong> with billing alarms set</li>
+<li>[ ] <strong>Apple Developer Program</strong> ($99/yr) — needed for iOS App Store</li>
+<li>[ ] <strong>Google Play Console</strong> ($25 one-time)</li>
+<li>[ ] <strong>Stripe account</strong> + verified business</li>
+<li>[ ] <strong>Mailgun or SendGrid</strong> (free tier OK)</li>
+<li>[ ] <strong>Sentry</strong> (free tier OK)</li>
+<li>[ ] <strong>Cloudflare</strong> (free tier for DNS + DDoS)</li>
+<li>[ ] <strong>GitHub</strong> organisation + private repo</li>
+<li>[ ] <strong>Hugging Face Hub</strong> (free, for hosting fine-tuned model weights)</li>
+</ul>
+
+<h3>Decisions only you can make</h3>
+<ul>
+<li>[ ] Pricing tiers — copy the PDF (Free/Pro/Studio/Enterprise)?</li>
+<li>[ ] Brand name + logo — is "SnapAI" final?</li>
+<li>[ ] Target geography for first launch (US? India? both?)</li>
+<li>[ ] Self-hosted vs managed Postgres</li>
+<li>[ ] Storage retention policy (30 / 60 / 90 days?)</li>
+<li>[ ] Free tier limits (the PDF said 3 events/month, 100 captures)</li>
+<li>[ ] Photographer-friendly licence: who owns the captured photos?</li>
+</ul>
+
+<h3>Money to spend (rough)</h3>
+<table>
+<thead><tr><th>Item</th><th>Setup</th><th>Monthly</th></tr></thead>
+<tbody>
+<tr><td>Domain</td><td>$12</td><td>–</td></tr>
+<tr><td>AWS (Tier β: 1× t3.medium + RDS micro + S3)</td><td>–</td><td>$80–150</td></tr>
+<tr><td>AWS (Tier γ: c5.xlarge + RDS small + ALB + CloudFront + S3)</td><td>–</td><td>$300–600</td></tr>
+<tr><td>Apple/Google dev accounts</td><td>$124</td><td>–</td></tr>
+<tr><td>Stripe fees</td><td>–</td><td>2.9% + 30¢/txn</td></tr>
+<tr><td>Sentry</td><td>–</td><td>$0–26</td></tr>
+<tr><td>Mailgun / SendGrid</td><td>–</td><td>$0–35</td></tr>
+<tr><td>External security audit</td><td>$3,000</td><td>–</td></tr>
+<tr><td>External GDPR review</td><td>$1,000</td><td>–</td></tr>
+<tr><td><strong>Total to launch</strong></td><td><strong>~$4,500</strong></td><td><strong>~$200–700</strong></td></tr>
+</tbody></table>
+
+<h3>Real event data to collect (the highest-leverage thing)</h3>
+<ul>
+<li>[ ] <strong>Record 5–10 hours of real event footage</strong> (your own / friends' weddings, birthdays). Use a phone — quality doesn't matter for training.</li>
+<li>[ ] <strong>Annotate "good moments"</strong> — just timestamps, e.g. "01:34 cake_cutting peak". Use a Google Sheet, no fancy tool needed.</li>
+<li>[ ] Upload the labelled set to me — I'll fold it into the LoRA fine-tune.</li>
+</ul>
+
+<p>This single deliverable lifts moment accuracy from ~70% to ~85%. Do it</p>
+<p>even if you don't do anything else from this list.</p>
+
+<h3>Test events (you must be present)</h3>
+<ul>
+<li>[ ] <strong>Event 1</strong>: friend's birthday, your phone running SnapAI on a tripod.</li>
+<li>[ ] <strong>Event 2</strong>: small wedding (or proxy). Get permission to record.</li>
+<li>[ ] <strong>Event 3</strong>: corporate / team event.</li>
+</ul>
+
+<hr/>
+
+<h2>4. Things I can build — concrete sequence</h2>
+
+<p>Once you tell me to proceed (and have provided real event data + AWS</p>
+<p>account), here's the order I recommend:</p>
+
+<h3>Sprint 1 (week 1–2) — "make it shippable to friends"</h3>
+<ul>
+<li>Enforce JWT on session routes (currently scaffolding).</li>
+<li>Build register/login + email verification.</li>
+<li>Per-user session isolation (sid is already random, just add owner_id).</li>
+<li>Polish the album-delivery URL (signed S3 URLs that expire in 7 days).</li>
+<li>Eval harness against your event recordings.</li>
+</ul>
+
+<h3>Sprint 2 (week 3–4) — "deploy to AWS"</h3>
+<ul>
+<li>Terraform for VPC + EC2 + RDS + S3 + CloudFront.</li>
+<li>Postgres migration (drop-in for the existing SQLite calls).</li>
+<li>S3 photo storage (replace local filesystem).</li>
+<li>Health checks, auto-restart, log shipping to CloudWatch.</li>
+</ul>
+
+<h3>Sprint 3 (week 5–7) — "iOS app"</h3>
+<ul>
+<li>React Native mobile app. Bare-bones first: live camera + connect to</li>
+</ul>
+<p>  server + download album.</p>
+<ul>
+<li>TestFlight beta with your 5 friends.</li>
+</ul>
+
+<h3>Sprint 4 (week 8–9) — "billing"</h3>
+<ul>
+<li>Stripe integration: trial, subscription, upgrade/downgrade, cancel.</li>
+<li>Settings page.</li>
+<li>Email templates (welcome, billing failed, trial ending).</li>
+</ul>
+
+<h3>Sprint 5 (week 10–11) — "scale + polish"</h3>
+<ul>
+<li>Redis pub/sub for multi-instance.</li>
+<li>Load test to 100 concurrent cameras.</li>
+<li>Admin dashboard.</li>
+<li>Onboarding wizard.</li>
+</ul>
+
+<h3>Sprint 6 (week 12–14) — "Android + launch"</h3>
+<ul>
+<li>Android React Native build (~80% code reuse from iOS).</li>
+<li>Play Store + App Store submission (review takes 2-7 days).</li>
+<li>Public landing page.</li>
+</ul>
+
+<p><strong>Total</strong>: 14 weeks of focused engineering. Faster if we parallelise</p>
+<p>mobile and backend.</p>
+
+<hr/>
+
+<h2>5. Marketing &amp; GTM (Phase 5 — your domain)</h2>
+
+<p>Engineering side (me) is mostly done after sprint 6. Phase 5 in the PDF</p>
+<p>is product-market work. I can advise but not execute. Big rocks:</p>
+
+<h3>Pre-launch (during sprints 1–6)</h3>
+<ul>
+<li>[ ] Marketing site (snappy.ai or similar). I can build with Next.js.</li>
+<li>[ ] Demo video (60s), before/after captures.</li>
+<li>[ ] Photographer waitlist landing page (email capture).</li>
+<li>[ ] Initial blog content for SEO (5–10 articles, "how AI is changing wedding photography" style).</li>
+<li>[ ] Discord/Slack community started.</li>
+<li>[ ] 5 reference photographers using it free for case studies.</li>
+</ul>
+
+<h3>Launch week</h3>
+<ul>
+<li>[ ] Product Hunt launch (aim Tuesday morning Pacific).</li>
+<li>[ ] Hacker News Show HN post.</li>
+<li>[ ] Email blast to waitlist.</li>
+<li>[ ] Reddit r/photography (be careful — they hate self-promo, lead with value).</li>
+<li>[ ] LinkedIn post.</li>
+</ul>
+
+<h3>Post-launch (months 1–6)</h3>
+<ul>
+<li>[ ] Trade shows: WPPI ($300 booth, Mar), Imaging USA (Jan), local wedding fairs</li>
+<li>[ ] Influencer photographer partnerships (Justin &amp; Mary, Susan Stripling, etc.)</li>
+<li>[ ] Affiliate program (the PDF said 20% commission)</li>
+<li>[ ] YouTube tutorials</li>
+<li>[ ] Pixieset / Pic-Time / ShootProof integrations</li>
+</ul>
+
+<hr/>
+
+<h2>6. Hard truths</h2>
+
+<ol>
+<li><strong>You won't hit the PDF's "$24K MRR by month 18" without a real sales motion.</strong></li>
+</ol>
+<p>   The PDF assumed a marketing lead and 1 sales hire by month 12. Without</p>
+<p>   that, you'll be at $5–10K MRR — still useful, but plan for it.</p>
+
+<ol>
+<li><strong>The mobile app is the single biggest engineering chunk.</strong></li>
+</ol>
+<p>   3–6 weeks of work I haven't started. If you don't build it,</p>
+<p>   photographers won't take you seriously. The browser app works on phones</p>
+<p>   but isn't the product photographers want.</p>
+
+<ol>
+<li><strong>The AI accuracy ceiling is 85% without 30+ hours of YOUR labeled data.</strong></li>
+</ol>
+<p>   No code change I make gets us past that. The bottleneck is data,</p>
+<p>   not models. (See ACCURACY_HONEST_TRUTH section in CHANGELOG v2.5.)</p>
+
+<ol>
+<li><strong>Cloud costs scale with photo volume, not user count.</strong></li>
+</ol>
+<p>   At 1,000 events/month × ~100 photos × 2 MB = 200 GB S3 = ~$5 storage.</p>
+<p>   Bandwidth is the surprise — CloudFront egress at 1 TB/month is $85.</p>
+<p>   Build a realistic cost model BEFORE you set pricing.</p>
+
+<ol>
+<li><strong>GDPR + photo consent is non-negotiable in the EU.</strong></li>
+</ol>
+<p>   You need explicit consent from every face in every photo, OR a</p>
+<p>   policy stating the photographer has obtained consent on their end.</p>
+<p>   Get the lawyer review before you take EU customers.</p>
+
+<ol>
+<li><strong>The PDF's 18-month timeline assumes a team of 4–5 + $200K seed.</strong></li>
+</ol>
+<p>   We're you + me + AI assistance. Realistic timeline for a real</p>
+<p>   launch (Tier γ) is 6–9 months even working full-time, OR 12–18</p>
+<p>   months part-time.</p>
+
+<hr/>
+
+<h2>7. The 30-second decision tree</h2>
+
+<pre><code>
+Where are you trying to get?
+
+├─ "I want to use this on my own events / friends' events"
+│   → You're already there. Just `python3 run.py`.
+│
+├─ "I want a few photographers to try it for free"
+│   → Tier α. 2 weeks of my work + ~$50 setup. I do auth + deploy.
+│
+├─ "I want to charge money and run a real SaaS"
+│   → Tier β minimum (4 more weeks) or Tier γ (12+ more weeks).
+│   → ~$4500 setup, ~$300/mo running, 14 weeks engineering total.
+│
+└─ "I want to be at the PDF's month 18 target ($24K MRR, 200 paying)"
+    → Hire 1 React Native engineer + 1 sales/marketer + me.
+    → 6–12 months serious investment, $50–150K capital.
+</code></pre>
+
+<hr/>
+
+<h2>8. What I need from you to start sprint 1</h2>
+
+<ol>
+<li><strong>One real event video</strong> (5+ minutes, with you marking 3+ keeper moments by timestamp). This is the single most important deliverable.</li>
+<li><strong>Decision</strong> on pricing tiers (PDF default is fine if you're undecided).</li>
+<li><strong>AWS account</strong> created with a billing alarm at $100/mo.</li>
+<li><strong>Domain name</strong> decided + purchased.</li>
+<li><strong>Tell me which tier you're aiming at</strong> (α / β / γ).</li>
+</ol>
+
+<p>Once those five are in hand, I start sprint 1 the same day. Sprint 1</p>
+<p>unblocks "friends can use it"; everything else is a fork from there.</p>
+
+<hr/>
+
+<h2>9. Pre-launch checklist (the one to print and tape to your wall)</h2>
+
+<pre><code>
+Engineering (mine)
+[ ] JWT auth enforced + register/login            (sprint 1)
+[ ] Eval harness on real event data               (sprint 1)
+[ ] AWS Terraform deployment                       (sprint 2)
+[ ] Postgres migration                             (sprint 2)
+[ ] S3 + signed URLs for albums                    (sprint 2)
+[ ] iOS React Native app                           (sprint 3)
+[ ] Stripe Checkout integration                    (sprint 4)
+[ ] Onboarding wizard                              (sprint 5)
+[ ] Admin dashboard                                (sprint 5)
+[ ] Android build                                  (sprint 6)
+[ ] App Store + Play Store submitted               (sprint 6)
+
+Decisions / spend (yours)
+[ ] Domain + AWS + Stripe + Apple + Google accts
+[ ] Pricing tiers locked
+[ ] Privacy policy + ToS published
+[ ] 30 hours of labelled event video
+[ ] 5 reference photographer relationships
+[ ] Marketing site copy + demo video
+[ ] External security audit booked ($3-5K)
+[ ] GDPR consultant booked (if EU)
+[ ] Trade show calendar (WPPI, Imaging USA)
+[ ] Discord / Slack community launched
+
+Validation (mixed)
+[ ] 3 real events tested end-to-end
+[ ] Load test passes 100 concurrent cameras
+[ ] First 10 paying customers identified
+[ ] Refund / cancellation flow tested
+[ ] Disaster recovery tested (RDS snapshot restore)
+</code></pre>
+
+<hr/>
+
+<h2>10. Final answer to "have you completed Phase 3 and Phase 4?"</h2>
+
+<p><strong>No.</strong></p>
+
+<ul>
+<li>Phase 3 is ~35% done — JWT scaffolding, basic dashboard, auth tables. The mobile app, polished UX, and submission to stores are the major remaining chunks.</li>
+<li>Phase 4 is ~25% done — Docker, docker-compose, CI templates. The actual cloud deployment, Postgres migration, Stripe, and admin tooling are the major remaining chunks.</li>
+</ul>
+
+<p><strong>Realistic time to a paid public launch: 12–14 weeks of engineering + parallel sales/marketing work, assuming you provide AWS, App Store accounts, and at least one labelled event video.</strong></p>
+
+<p>I can complete every engineering checkbox above. The non-engineering</p>
+<p>items (pricing decisions, account creation, real event data, marketing</p>
+<p>content, security audit) require you. Tell me which sprint to start and</p>
+<p>I'll have it done in the timelines listed.</p>
+</body></html>
