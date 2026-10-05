@@ -1,0 +1,489 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Snappy — Your Tasks</title>
+<style>
+@page { size: A4; margin: 18mm 16mm; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  font-size: 10.5pt; line-height: 1.55; color: #18181b; max-width: 900px; margin: 0 auto;
+  padding: 28px 32px;
+}
+h1 { font-size: 24pt; color: #1e1b4b; margin: 0 0 4px 0;
+     border-bottom: 3px solid #6366f1; padding-bottom: 6px; }
+h2 { font-size: 17pt; color: #1e1b4b; margin: 28px 0 10px 0;
+     padding-top: 18px; border-top: 1px solid #e5e7eb; }
+h3 { font-size: 13pt; color: #4338ca; margin: 18px 0 6px 0; }
+h4 { font-size: 11pt; color: #1e293b; margin: 12px 0 4px 0; }
+p, li { margin: 4px 0; }
+blockquote { border-left: 3px solid #6366f1; padding: 6px 14px;
+  background: #eef2ff; margin: 12px 0; color: #1e1b4b; font-size: 10pt; }
+code { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 9.5pt;
+  background: #f1f5f9; padding: 1px 5px; border-radius: 3px; color: #0f172a; }
+pre { background: #0f172a; color: #f1f5f9; padding: 10px 12px;
+  border-radius: 6px; overflow-x: auto; font-size: 9pt; line-height: 1.45; }
+pre code { background: transparent; color: inherit; padding: 0; }
+table { border-collapse: collapse; width: 100%; margin: 10px 0;
+  font-size: 9.5pt; page-break-inside: avoid; }
+th { background: #1e1b4b; color: #ffffff; font-weight: 600;
+  padding: 6px 8px; text-align: left; border: 1px solid #312e81; }
+td { padding: 5px 8px; border: 1px solid #e5e7eb; vertical-align: top; }
+tr:nth-child(even) td { background: #f8fafc; }
+ul, ol { padding-left: 22px; margin: 6px 0; }
+hr { border: none; border-top: 1px dashed #cbd5e1; margin: 20px 0; }
+.cover { text-align: center; padding: 80px 0 40px 0; page-break-after: always; }
+.cover h1 { border: none; font-size: 38pt; }
+.cover .sub { font-size: 14pt; color: #475569; margin-top: 4px; }
+.cover .meta { font-size: 10pt; color: #64748b; margin-top: 36px; }
+.toc { page-break-after: always; }
+.toc h2 { border: none; padding-top: 0; }
+.toc ol { font-size: 11pt; line-height: 2; }
+.tag-ok   { color: #15803d; font-weight: 600; }
+.tag-warn { color: #b45309; font-weight: 600; }
+.tag-bad  { color: #b91c1c; font-weight: 600; }
+@media print {
+  body { padding: 0; }
+  h2 { page-break-before: auto; }
+  h2, h3, h4 { page-break-after: avoid; }
+  table, pre, blockquote { page-break-inside: avoid; }
+}
+</style></head><body>
+
+    <section class="cover">
+      <h1>SNAPPY</h1>
+      <div class="sub">Your Tasks</div>
+      <div class="meta">Engineering plan · Cost model · Pre-launch checklist</div>
+    </section>
+<h1>SnapAI — Your Technical Steps to Launch</h1>
+
+<p>Every step you (the human) need to take, with the exact command,</p>
+<p>expected output, and why each matters. Work through these in order.</p>
+
+<hr/>
+
+<h2>0. Understand what's now in the repo</h2>
+
+<p>After the latest commit you have a complete production stack</p>
+<p><strong>stubbed in but not turned on</strong> — the system runs in dev mode by</p>
+<p>default; you toggle each subsystem via env vars as you bring services</p>
+<p>online.</p>
+
+<table>
+<thead><tr><th>Subsystem</th><th>Module</th><th>Activate with</th><th>Default if off</th></tr></thead>
+<tbody>
+<tr><td>Storage</td><td><code>backend/storage/</code></td><td><code>SNAPPY_STORAGE=s3</code> + S3 vars</td><td>local filesystem</td></tr>
+<tr><td>Database</td><td><code>backend/utils/persistence.py</code></td><td><code>SNAPPY_DB_URL=postgresql://…</code></td><td>SQLite</td></tr>
+<tr><td>Cache / pub-sub</td><td><code>backend/cache/</code></td><td><code>SNAPPY_REDIS_URL=…</code></td><td>in-memory dict</td></tr>
+<tr><td>Auth</td><td><code>backend/auth/</code></td><td><code>SNAPPY_AUTH=1</code></td><td>open / anonymous</td></tr>
+<tr><td>Email</td><td><code>backend/mail/</code></td><td><code>SNAPPY_EMAIL_BACKEND=mailgun</code> + key</td><td>console (logs only)</td></tr>
+<tr><td>Billing</td><td><code>backend/billing/</code></td><td><code>SNAPPY_BILLING=stripe</code> + keys</td><td>free tier for everyone</td></tr>
+<tr><td>Errors</td><td><code>backend/utils/error_tracking.py</code></td><td><code>SNAPPY_SENTRY_DSN=…</code></td><td>logs only</td></tr>
+</tbody></table>
+
+<hr/>
+
+<h2>1. Run it locally (right now, no setup)</h2>
+
+<pre><code>
+cd /Users/vineetjindal/Downloads/snappy/snappy_final
+pip install -r requirements.txt          # ~10 min first time
+python3 run.py
+</code></pre>
+
+<p>Open &lt;http://localhost:8765&gt;. Verify:</p>
+
+<pre><code>
+curl -s localhost:8765/health | python3 -m json.tool
+</code></pre>
+
+<p>Expected: <code>version: "v2.5"</code>, <code>face.backend: "mediapipe+yolo"</code>,</p>
+<p><code>models.clip.available: true</code>, <code>models.nima.available: true</code>.</p>
+
+<p><span class="tag-ok">✅</span> <strong>You're now at the v2.5 prototype baseline.</strong> Everything below</p>
+<p>is for taking it to a paid public SaaS.</p>
+
+<hr/>
+
+<h2>2. Buy a domain (~$12, 10 min)</h2>
+
+<p>Go to <strong>Cloudflare Registrar</strong> or <strong>Namecheap</strong>. Pick a domain — <code>.ai</code></p>
+<p>costs ~$70/yr; <code>.app</code> ~$20; <code>.com</code> ~$12.</p>
+
+<pre><code>
+# Set up Cloudflare DNS (if you registered there)
+# Add an A record for "@" pointing at 192.0.2.1 for now (placeholder)
+# We'll point it at the real EC2 IP after Terraform applies
+</code></pre>
+
+<p><strong>Why now:</strong> sprint 2 needs the domain for HTTPS certs. Cloudflare</p>
+<p>nameservers can take up to 24 hours to activate.</p>
+
+<hr/>
+
+<h2>3. Create AWS account (~30 min)</h2>
+
+<ol>
+<li>Sign up at &lt;https://aws.amazon.com/free&gt;. Use an email you control.</li>
+<li><strong>Set a billing alarm</strong> at $100/mo:</li>
+</ol>
+<pre><code>
+   AWS Console → Billing → Budgets → Create Budget
+   Type: Cost budget, Amount: 100 USD/mo, Notifications: 80%, 100%
+</code></pre>
+<ol>
+<li>Create an IAM user with admin access (root account stays untouched):</li>
+</ol>
+<pre><code>
+   IAM → Users → Add User
+   Name: snappy-deploy, Permissions: AdministratorAccess
+   Access keys: yes (download CSV)
+</code></pre>
+<ol>
+<li>Configure CLI on your laptop:</li>
+</ol>
+<pre><code>
+   pip install awscli
+   aws configure
+   # Paste the access key, secret, region (us-east-1), output (json)
+   aws sts get-caller-identity     # → should show your user ARN
+</code></pre>
+
+<p><strong>Why now:</strong> Terraform needs these credentials to provision the VPC.</p>
+
+<hr/>
+
+<h2>4. Apple Developer enrolment (~$99, 24-48h verify)</h2>
+
+<ol>
+<li>Go to &lt;https://developer.apple.com/programs/enroll/&gt;.</li>
+<li>Pay $99/yr. Use a personal Apple ID OR a business D-U-N-S number.</li>
+<li><strong>Wait</strong>: verification takes 24-48 hours. <strong>Start this NOW</strong> — it's</li>
+</ol>
+<p>   the longest-pole human task and gates all iOS work.</p>
+<ol>
+<li>Once approved, add your team ID to the React Native project via</li>
+</ol>
+<p>   Xcode &gt; Signing &amp; Capabilities.</p>
+
+<p><strong>Why now:</strong> sprint 3 (iOS app) is dead in the water without this.</p>
+
+<hr/>
+
+<h2>5. Mailgun (or SendGrid) — free tier, 10 min</h2>
+
+<p>For transactional email (verification, welcome, capture notifications).</p>
+
+<h3>Mailgun (recommended — cleaner pricing)</h3>
+
+<ol>
+<li>Sign up at &lt;https://signup.mailgun.com/new/signup&gt;.</li>
+<li>Add a domain — <strong>a subdomain is fine</strong> (e.g., <code>mail.your-snappy-host.com</code>).</li>
+<li>Add the DNS records Mailgun shows you (SPF, DKIM, MX) to your DNS</li>
+</ol>
+<p>   provider. Wait ~10 min for verification.</p>
+<ol>
+<li>Get your API key: Dashboard → Settings → API Keys.</li>
+<li>Test it before you commit:</li>
+</ol>
+<pre><code>
+   export SNAPPY_EMAIL_BACKEND=mailgun
+   export SNAPPY_EMAIL_MAILGUN_KEY="key-xxx"
+   export SNAPPY_EMAIL_MAILGUN_DOMAIN="mail.your-snappy-host.com"
+   export SNAPPY_EMAIL_FROM="SnapAI &lt;noreply@mail.your-snappy-host.com&gt;"
+   python3 -c "
+   import sys; sys.path.insert(0,'backend')
+   from mail.sender import EmailMessage, get_email_sender
+   ok = get_email_sender().send(EmailMessage(
+       to='YOUR_REAL_EMAIL@example.com',
+       subject='SnapAI test', text='If you see this, Mailgun works.'))
+   print('sent:', ok)
+   "
+</code></pre>
+<p>   Check your inbox. If empty after 30s, check Mailgun → Logs.</p>
+
+<h3>SendGrid alternative</h3>
+
+<p>Same flow, set <code>SNAPPY_EMAIL_BACKEND=sendgrid</code> and</p>
+<p><code>SNAPPY_EMAIL_SENDGRID_KEY=…</code>.</p>
+
+<p><strong>Why now:</strong> sprint 1 register/verify flow needs this.</p>
+
+<hr/>
+
+<h2>6. Stripe — when ready to charge (~30 min)</h2>
+
+<p><strong>Skip until sprint 4.</strong> When you're ready:</p>
+
+<ol>
+<li>Sign up at &lt;https://dashboard.stripe.com/register&gt;. Verify business.</li>
+<li>Create products in <strong>Test mode</strong> first:</li>
+</ol>
+<pre><code>
+   Stripe Dashboard → Products → Add product
+   Name: "SnapAI Pro"     Price: $49/mo (recurring) → save the price_id (price_xxx)
+   Name: "SnapAI Studio"  Price: $149/mo (recurring) → save price_xxx
+</code></pre>
+<ol>
+<li>Get your test API keys: <strong>Developers → API Keys</strong>.</li>
+<li>Set webhook endpoint:</li>
+</ol>
+<pre><code>
+   Developers → Webhooks → Add endpoint
+   URL: https://your-snappy-host/billing/webhook
+   Events: checkout.session.completed,
+           customer.subscription.created,
+           customer.subscription.updated,
+           customer.subscription.deleted
+   → Save the webhook signing secret (whsec_xxx)
+</code></pre>
+<ol>
+<li>Test locally:</li>
+</ol>
+<pre><code>
+   export SNAPPY_BILLING=stripe
+   export SNAPPY_STRIPE_SECRET="sk_test_..."
+   export SNAPPY_STRIPE_WEBHOOK_SECRET="whsec_..."
+   export SNAPPY_STRIPE_PRO_PRICE="price_..."
+   export SNAPPY_STRIPE_STUDIO_PRICE="price_..."
+   python3 run.py
+   curl -s localhost:8765/billing/tiers | python3 -m json.tool
+   # → Should list all 4 tiers with prices
+</code></pre>
+<ol>
+<li>When you're ready for real money, swap to live keys (<code>sk_live_…</code>).</li>
+</ol>
+
+<hr/>
+
+<h2>7. Deploy to AWS via Terraform (~30 min once accounts ready)</h2>
+
+<pre><code>
+brew install terraform                                        # macOS
+cd /Users/vineetjindal/Downloads/snappy/snappy_final/deploy/terraform
+
+# Copy the example tfvars and fill in
+cp secrets.auto.tfvars.example secrets.auto.tfvars
+$EDITOR secrets.auto.tfvars
+# Set: domain, db_password, container_image (push your Docker image to GHCR first)
+
+terraform init
+terraform plan      # Read carefully. Should show ~25 resources to create.
+terraform apply     # Type 'yes' to confirm. Takes ~8-10 minutes.
+</code></pre>
+
+<p>Outputs at the end:</p>
+<ul>
+<li><code>app_public_ip</code> — the EC2 instance running SnapAI</li>
+<li><code>db_endpoint</code>  — RDS PostgreSQL host (already wired into the EC2 startup)</li>
+<li><code>s3_bucket</code>    — your photos bucket</li>
+</ul>
+
+<p><strong>Point your domain DNS</strong> at the public IP:</p>
+<pre><code>
+Cloudflare DNS → Add Record
+Type: A, Name: @, Content: &lt;app_public_ip&gt;, Proxy: DNS only (for now)
+</code></pre>
+
+<p>Wait 5 min, then:</p>
+
+<pre><code>
+curl -s http://&lt;app_public_ip&gt;:8765/health | python3 -m json.tool
+# → version v2.5, all models available
+</code></pre>
+
+<p><span class="tag-ok">✅</span> <strong>You now have a public SnapAI server.</strong> Add HTTPS via AWS Certificate</p>
+<p>Manager + ALB next sprint.</p>
+
+<hr/>
+
+<h2>8. Push your Docker image to a registry (~5 min)</h2>
+
+<pre><code>
+# Build
+cd /Users/vineetjindal/Downloads/snappy/snappy_final
+docker build -f deploy/Dockerfile -t snappy:v2.5 .
+
+# Push to GitHub Container Registry (free for public repos)
+echo $GITHUB_PAT | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
+docker tag snappy:v2.5 ghcr.io/YOUR_ORG/snappy:v2.5
+docker push ghcr.io/YOUR_ORG/snappy:v2.5
+</code></pre>
+
+<p>Update <code>secrets.auto.tfvars</code> <code>container_image</code> then <code>terraform apply</code> again.</p>
+
+<hr/>
+
+<h2>9. Sentry (~5 min, free)</h2>
+
+<ol>
+<li>Sign up at &lt;https://sentry.io/signup&gt;.</li>
+<li>Create a project → "Python".</li>
+<li>Copy the DSN (<code>https://xxx@oxxx.ingest.sentry.io/xxx</code>).</li>
+<li>Add to your env:</li>
+</ol>
+<pre><code>
+   export SNAPPY_SENTRY_DSN="https://xxx@..."
+   pip install sentry-sdk
+   python3 run.py
+</code></pre>
+<ol>
+<li>Trigger an error to verify: hit a bad route. Check Sentry dashboard.</li>
+</ol>
+
+<hr/>
+
+<h2>10. Test the auth flow end-to-end (~5 min)</h2>
+
+<pre><code>
+# 1. Enable auth + start server
+SNAPPY_AUTH=1 python3 run.py
+
+# 2. In another terminal — register
+curl -s -X POST localhost:8765/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"hunter2word"}'
+# → {"ok": true, "user_id": 1, "email": "test@example.com"}
+
+# 3. Login → get token
+TOKEN=$(curl -s -X POST localhost:8765/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"hunter2word"}' | \
+  python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
+echo $TOKEN
+
+# 4. Use the token to create a session
+curl -s -X POST localhost:8765/sessions \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"event_name":"Auth Test","event_type":"general","prompt":"general"}'
+# → {"session_id": "abc123", ...}
+
+# 5. Confirm anonymous access is blocked
+curl -s -X POST localhost:8765/sessions \
+  -H "Content-Type: application/json" \
+  -d '{"event_name":"Should fail"}'
+# → {"error": "Missing Bearer token"}
+</code></pre>
+
+<hr/>
+
+<h2>11. Run the load test (~5 min)</h2>
+
+<pre><code>
+brew install k6
+k6 run -e SNAPPY_HOST=http://localhost:8765 -e VUS=20 \
+       deploy/k6_loadtest.js
+</code></pre>
+
+<p>Watch the summary. p99 should stay under 500 ms with 20 VUs on a CPU</p>
+<p>laptop. 100 VUs needs the production deployment with workers.</p>
+
+<hr/>
+
+<h2>12. Record your first labelled event video (~30 min)</h2>
+
+<p><strong>This is the highest-leverage thing you can do.</strong> It directly raises</p>
+<p>moment-detection accuracy.</p>
+
+<ol>
+<li>Record a real event with your phone (5–30 min). Wedding, birthday,</li>
+</ol>
+<p>   sports — anything.</p>
+<ol>
+<li>Open the video in any player. Pause and note timestamps for keeper</li>
+</ol>
+<p>   moments. Format:</p>
+<pre><code>
+   00:34  cake_cutting
+   01:12  group_photo
+   02:48  ring_ceremony
+</code></pre>
+<ol>
+<li>Upload via the web UI's Video tab, or:</li>
+</ol>
+<pre><code>
+   python3 scripts/test_video_upload.py /path/to/your-video.mp4
+</code></pre>
+<ol>
+<li>Compare the captures SnapAI chose against your timestamps. Mismatches</li>
+</ol>
+<p>   become training data for the LoRA fine-tune.</p>
+
+<hr/>
+
+<h2>13. Decisions you must make before launching</h2>
+
+<p>Don't ship until each of these is decided. Write your answers in</p>
+<p><code>launch_decisions.md</code>:</p>
+
+<ul>
+<li>[ ] <strong>Brand name + domain</strong> (final)</li>
+<li>[ ] <strong>Pricing</strong>: stick with $0/$49/$149 PDF defaults?</li>
+<li>[ ] <strong>Free tier limits</strong>: 3 events × 100 captures = good?</li>
+<li>[ ] <strong>Photo retention</strong>: 30 / 60 / 90 days? (currently 90 in Terraform)</li>
+<li>[ ] <strong>Geographic launch</strong>: US first? India? Both?</li>
+<li>[ ] <strong>Privacy policy</strong>: lawyer-reviewed or template? ($200–1500)</li>
+<li>[ ] <strong>Photo licence</strong>: who owns photos — photographer or SnapAI?</li>
+<li>[ ] <strong>Refund policy</strong>: 7 / 14 / 30 days?</li>
+<li>[ ] <strong>Support hours</strong>: email-only or live chat?</li>
+</ul>
+
+<hr/>
+
+<h2>14. Pre-launch checklist (the 90-day countdown)</h2>
+
+<pre><code>
+T-90 days  ✅ Domain, AWS, Apple, Stripe, Mailgun accounts created
+T-90 days  ✅ Sprint 1 done (auth + isolation + eval harness)
+T-75 days  ✅ Sprint 2 done (AWS deployed, HTTPS, Postgres)
+T-60 days  ✅ Sprint 3 done (iOS app on TestFlight, 5 beta users)
+T-45 days  ✅ Sprint 4 done (Stripe live, pricing locked)
+T-45 days  ✅ Privacy policy + ToS published
+T-30 days  ✅ Sprint 5 done (admin dashboard, Sentry, status page)
+T-30 days  ✅ Security audit booked + scheduled
+T-21 days  ✅ Sprint 6 done (Android in Play review, marketing site)
+T-14 days  ✅ Demo video recorded + edited
+T-14 days  ✅ Press kit ready (logo, screenshots, copy)
+T-7  days  ✅ Product Hunt account warmed (post 5 supportive comments on others)
+T-7  days  ✅ Email blast list ready
+T-3  days  ✅ Final smoke test on production
+T-1  day   ✅ Status page green
+T-0        🚀 Product Hunt + HN + LinkedIn + email blast
+T+1  day   ✅ Reply to every signup within 4 hours
+T+7  days  ✅ First retrospective: did anyone pay? Why or why not?
+T+30 days  ✅ First 10 paying customers, or pivot
+</code></pre>
+
+<hr/>
+
+<h2>15. The summary card</h2>
+
+<p>What I built today (you can use these immediately):</p>
+
+<table>
+<thead><tr><th>File</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>backend/storage/</code></td><td>Local + S3 storage abstraction</td></tr>
+<tr><td><code>backend/mail/</code></td><td>Mailgun + SendGrid + console email</td></tr>
+<tr><td><code>backend/auth/</code></td><td>JWT enforcement, register/login/me, password hashing</td></tr>
+<tr><td><code>backend/billing/</code></td><td>Stripe checkout + webhooks + tier enforcement</td></tr>
+<tr><td><code>backend/cache/</code></td><td>In-memory + Redis cache</td></tr>
+<tr><td><code>backend/utils/error_tracking.py</code></td><td>Sentry init</td></tr>
+<tr><td><code>deploy/terraform/main.tf</code></td><td>Full AWS deployment (VPC + EC2 + RDS + S3 + Redis)</td></tr>
+<tr><td><code>deploy/k6_loadtest.js</code></td><td>k6 load test script</td></tr>
+<tr><td><code>mobile/</code></td><td>React Native scaffold</td></tr>
+<tr><td><code>landing/index.html</code></td><td>Marketing landing page</td></tr>
+</tbody></table>
+
+<p>What you do this week:</p>
+<ol>
+<li>Buy domain + AWS account + Apple enrolment <strong>in parallel</strong>.</li>
+<li>Test the auth flow locally (§10 above).</li>
+<li>Run the k6 load test (§11).</li>
+<li>Record one labelled event video (§12).</li>
+<li>Tell me which sprint to start.</li>
+</ol>
+
+<p>Once §1–4 above are done, I have everything I need to push you the rest</p>
+<p>of the way.</p>
+</body></html>
