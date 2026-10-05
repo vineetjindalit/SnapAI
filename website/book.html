@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Book a capturer · SnapAI</title>
+<meta name="description" content="Book a SnapAI event capturer in Delhi NCR. 30 min ₹99, 1 hr ₹199, 2 hr ₹299, 3 hr ₹399, or pick your own hours.">
+<meta name="theme-color" content="#001C70">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/style.css">
+<script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+<main>
+<section style="padding-top:36px">
+  <div class="wrap" style="max-width:760px">
+    <h1 data-i18n="book_title" style="font-size:clamp(1.9rem,4vw,2.6rem)"></h1>
+    <p class="muted" data-i18n="book_sub"></p>
+
+    <form id="bookForm" class="card" novalidate>
+      <div class="progress" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i></div>
+      <h2 id="stepTitle" style="font-size:1.4rem" data-i18n="step_event"></h2>
+
+      <fieldset data-step="1" style="border:0;padding:0;margin:0" class="form-grid">
+        <label class="f"><span data-i18n="f_event_type"></span>
+          <select id="event_type" required>
+            <option value="Birthday" data-i18n="ev_birthday"></option>
+            <option value="Anniversary" data-i18n="ev_anniv"></option>
+            <option value="Family function" data-i18n="ev_family"></option>
+            <option value="Kitty party" data-i18n="ev_kitty"></option>
+            <option value="Baby shower" data-i18n="ev_baby"></option>
+            <option value="Small corporate event" data-i18n="ev_corp"></option>
+            <option value="Other" data-i18n="ev_other"></option>
+          </select></label>
+        <div class="form-grid two">
+          <label class="f"><span data-i18n="f_date"></span><input type="date" id="event_date" required></label>
+          <label class="f"><span data-i18n="f_time"></span><input type="time" id="start_time" required value="18:00"></label>
+        </div>
+      </fieldset>
+
+      <fieldset data-step="2" hidden style="border:0;padding:0;margin:0" class="form-grid">
+        <div class="form-grid two">
+          <label class="f"><span data-i18n="f_area"></span>
+            <select id="area_city" required>
+              <option>Delhi</option><option>Gurugram</option><option>Noida</option><option>Greater Noida</option><option>Ghaziabad</option><option>Faridabad</option>
+              <option value="OTHER" data-i18n="other_city"></option>
+            </select></label>
+          <label class="f"><span data-i18n="f_locality"></span><input id="locality" data-i18n-ph="ph_locality" autocomplete="address-level3"></label>
+        </div>
+        <p class="notice" id="outsideNote" hidden data-i18n="outside_ncr"></p>
+        <label class="f"><span data-i18n="f_guests"></span><input type="number" id="guests" min="1" max="2000" inputmode="numeric" value="30"></label>
+      </fieldset>
+
+      <fieldset data-step="3" hidden style="border:0;padding:0;margin:0">
+        <div class="plan-pick">
+          <label class="plan-opt"><input type="radio" name="plan" value="30 min" checked><span><small data-i18n="p30_name"></small><b>₹99</b>30 min</span></label>
+          <label class="plan-opt"><input type="radio" name="plan" value="1 hr"><span><small data-i18n="p60_name"></small><b>₹199</b>1 hr</span></label>
+          <label class="plan-opt"><input type="radio" name="plan" value="2 hr"><span><small data-i18n="p120_name"></small><b>₹299</b>2 hr</span></label>
+          <label class="plan-opt"><input type="radio" name="plan" value="3 hr"><span><small data-i18n="p180_name"></small><b>₹399</b>3 hr</span></label>
+          <label class="plan-opt"><input type="radio" name="plan" value="custom" id="planCustomRadio"><span><small data-i18n="p_custom_name"></small><b id="customPriceTag">₹—</b><span data-i18n="f_custom_hours"></span></span></label>
+        </div>
+        <div id="customHoursBox" hidden style="margin-top:14px;max-width:260px">
+          <label class="f"><span data-i18n="f_custom_hours"></span>
+            <input type="number" id="customHours" min="4" max="24" step="1" value="4" inputmode="numeric"></label>
+          <p class="muted" style="margin:6px 0 0;font-size:.9rem"><span data-i18n="custom_price_label"></span>: ₹<span id="customPriceVal">396</span></p>
+          <p class="muted" style="margin:4px 0 0;font-size:.85rem" data-i18n="p_custom_note"></p>
+        </div>
+        <p class="muted" style="margin-top:12px;font-size:.95rem" data-i18n="promise_title"></p>
+      </fieldset>
+
+      <fieldset data-step="4" hidden style="border:0;padding:0;margin:0" class="form-grid">
+        <label class="f"><span data-i18n="f_name"></span><input id="name" required autocomplete="name" maxlength="120"></label>
+        <div class="form-grid two">
+          <label class="f"><span data-i18n="f_phone"></span><input id="phone" required inputmode="numeric" autocomplete="tel-national" maxlength="14" data-i18n-ph="ph_phone"></label>
+          <label class="f"><span data-i18n="f_email"></span><input id="email" type="email" autocomplete="email" maxlength="200"></label>
+        </div>
+        <label class="check"><input type="checkbox" id="whatsapp_ok" checked><span data-i18n="f_wa"></span></label>
+        <label class="check"><input type="checkbox" id="consent"><span data-i18n="f_consent"></span></label>
+      </fieldset>
+
+      <p class="err" id="err" role="alert"></p>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" id="backBtn" data-i18n="back" hidden></button>
+        <button type="button" class="btn btn-primary" id="nextBtn" data-i18n="next" style="margin-left:auto"></button>
+        <button type="submit" class="btn btn-primary" id="submitBtn" data-i18n="submit_booking" hidden style="margin-left:auto"></button>
+      </div>
+    </form>
+  </div>
+</section>
+</main>
+<footer class="site-footer" id="site-footer"></footer>
+<script src="/assets/app.js"></script>
+<script>
+(function(){
+  const S = window.SNAP, $ = (id) => document.getElementById(id);
+  const titles = ["step_event","step_place","step_plan","step_you"];
+  let step = 1;
+  const q = new URLSearchParams(location.search);
+  const planMap = {"30":"30 min","60":"1 hr","120":"2 hr","180":"3 hr"};
+  if (planMap[q.get("plan")]) document.querySelector(`input[name=plan][value="${planMap[q.get("plan")]}"]`).checked = true;
+
+  const hourlyRate = (S && S.CONFIG && S.CONFIG.hourlyRate) || 99;
+  function updateCustomPrice() {
+    const hrs = Math.max(4, parseInt($("customHours").value, 10) || 4);
+    const price = hourlyRate * hrs;
+    $("customPriceVal").textContent = price;
+    $("customPriceTag").textContent = "₹" + price;
+  }
+  document.querySelectorAll('input[name=plan]').forEach((r) => r.addEventListener("change", () => {
+    $("customHoursBox").hidden = !$("planCustomRadio").checked;
+    if ($("planCustomRadio").checked) updateCustomPrice();
+  }));
+  $("customHours") && $("customHours").addEventListener("input", updateCustomPrice);
+  updateCustomPrice();
+  const today = new Date(); today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+  $("event_date").min = today.toISOString().slice(0,10);
+
+  function show(n){
+    step = n;
+    document.querySelectorAll("fieldset[data-step]").forEach(f => f.hidden = Number(f.dataset.step) !== n);
+    document.querySelectorAll(".progress i").forEach((i,k) => i.classList.toggle("on", k < n));
+    $("stepTitle").dataset.i18n = titles[n-1]; $("stepTitle").textContent = S.t(titles[n-1]);
+    $("backBtn").hidden = n === 1; $("nextBtn").hidden = n === 4; $("submitBtn").hidden = n !== 4;
+    $("err").textContent = "";
+    const first = document.querySelector(`fieldset[data-step="${n}"] input, fieldset[data-step="${n}"] select`);
+    if (first && n > 1) first.focus();
+  }
+  $("area_city").addEventListener("change", () => { $("outsideNote").hidden = $("area_city").value !== "OTHER"; });
+  function valid(n){
+    if (n === 1 && !$("event_date").value) return S.t("e_required");
+    if (n === 1 && !$("start_time").value) return S.t("e_required");
+    if (n === 2 && $("area_city").value === "OTHER" && !$("locality").value.trim()) return S.t("e_required");
+    if (n === 4) {
+      if ($("name").value.trim().length < 2) return S.t("e_required");
+      const ph = $("phone").value.replace(/\D/g,"").replace(/^(91|0)(?=\d{10}$)/,"");
+      if (!/^[6-9]\d{9}$/.test(ph)) return S.t("e_phone");
+      if (!$("consent").checked) return S.t("e_consent");
+    }
+    return "";
+  }
+  $("nextBtn").addEventListener("click", () => { const e = valid(step); if (e) { $("err").textContent = e; return; } show(step + 1); });
+  $("backBtn").addEventListener("click", () => show(step - 1));
+  document.addEventListener("snap:lang", () => { $("stepTitle").textContent = S.t(titles[step-1]); });
+
+  $("bookForm").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    if (step !== 4) { $("nextBtn").click(); return; }
+    const e = valid(4); if (e) { $("err").textContent = e; return; }
+    const btn = $("submitBtn"); btn.disabled = true; btn.textContent = S.t("sending");
+    const src = S.captureSource();
+    const city = $("area_city").value, inNcr = city !== "OTHER";
+    let plan = document.querySelector("input[name=plan]:checked").value;
+    if (plan === "custom") {
+      const hrs = Math.max(4, parseInt($("customHours").value, 10) || 4);
+      plan = hrs + " hr";
+    }
+    const payload = {
+      name: $("name").value.trim(),
+      phone: $("phone").value.replace(/\D/g,"").replace(/^(91|0)(?=\d{10}$)/,""),
+      email: $("email").value.trim(),
+      whatsapp_ok: $("whatsapp_ok").checked,
+      event_type: $("event_type").value, event_date: $("event_date").value, start_time: $("start_time").value,
+      area: (inNcr ? city : "Outside NCR") + ($("locality").value.trim() ? " – " + $("locality").value.trim() : ""),
+      in_ncr: inNcr, guests: $("guests").value, plan, consent: true,
+      language: S.lang === "hi" ? "HI" : "EN", source: src.source, utm: src.utm,
+    };
+    try {
+      const rows = await S.rpc("submit_booking", payload);
+      const r = Array.isArray(rows) ? rows[0] : rows;
+      S.syncLead("booking", r.booking_id, "created");
+      if (window.fbq) fbq("track", "Lead");
+      const p = new URLSearchParams({ b: r.booking_id, plan, w: inNcr ? "0" : "1" });
+      location.href = "/thanks?" + p.toString();
+    } catch (err) {
+      console.error(err); $("err").textContent = S.t("e_generic");
+      btn.disabled = false; btn.textContent = S.t("submit_booking");
+    }
+  });
+  show(1);
+})();
+</script>
+</body>
+</html>

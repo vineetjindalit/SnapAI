@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Booking confirmed · SnapAI</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#001C70">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/style.css">
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+<main>
+<section>
+  <div class="wrap" style="max-width:640px">
+    <div class="card" style="text-align:center">
+      <div style="width:64px;height:64px;border-radius:50%;background:var(--marigold-2);display:grid;place-items:center;margin:0 auto 14px;font-size:1.8rem;color:var(--plum)">✓</div>
+      <h1 id="title" data-i18n="thanks_title" style="font-size:2rem"></h1>
+      <div id="idBlock">
+        <p class="muted" style="margin:0" data-i18n="thanks_id"></p>
+        <p style="font-family:'Baloo 2';font-weight:800;font-size:2rem;color:var(--plum);margin:.1em 0 .4em" id="bid"></p>
+      </div>
+      <p id="nextText" data-i18n="thanks_next"></p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:18px">
+        <button class="btn btn-primary" id="payBtn" hidden><span data-i18n="pay_now"></span>&nbsp;<span id="amt"></span></button>
+        <a class="btn btn-ghost" id="waBtn" target="_blank" rel="noopener" data-i18n="talk_first"></a>
+      </div>
+      <p class="err" id="payErr" role="alert" style="margin-top:10px"></p>
+      <p class="muted" style="font-size:.85rem;margin-top:14px" id="testNote" data-i18n="test_note"></p>
+    </div>
+  </div>
+</section>
+</main>
+<footer class="site-footer" id="site-footer"></footer>
+<script src="/assets/app.js"></script>
+<script>
+(function(){
+  const S = window.SNAP, C = S.CONFIG, q = new URLSearchParams(location.search), $ = (id) => document.getElementById(id);
+  let id = /^SNP-\d+$/.test(q.get("b") || "") ? q.get("b") : "";
+  try { if (id) localStorage.setItem("snap_last_booking", id); else id = localStorage.getItem("snap_last_booking") || ""; } catch (e) {}
+  let plan = q.get("plan"), waitlist = q.get("w") === "1", paid = q.get("paid") === "1";
+  $("bid").textContent = id || "—";
+
+  function planAmount(p){
+    if (!p) return null;
+    if (C.prices[p]) return C.prices[p];
+    const m = /^(\d+(?:\.\d+)?) hr$/.exec(p);
+    if (m) return Math.round(parseFloat(m[1]) * (C.hourlyRate || 99));
+    return null;
+  }
+
+  function render(){
+    if (paid) { $("title").textContent = S.t("paid_title"); $("payBtn").hidden = true; }
+    if (waitlist) { $("title").textContent = S.t("waitlist_title"); $("nextText").textContent = S.t("waitlist_p"); $("payBtn").hidden = true; $("testNote").hidden = true; }
+    const msg = (S.lang === "hi" ? "नमस्ते SnapAI! मेरी बुकिंग ID " : "Hi SnapAI! My booking ID is ") + id;
+    $("waBtn").href = `https://wa.me/${C.whatsapp}?text=${encodeURIComponent(msg)}`;
+  }
+
+  async function api(fn, payload) {
+    const res = await fetch(`${C.supabaseUrl}/functions/v1/${fn}`, {
+      method: "POST",
+      headers: { apikey: C.anonKey, Authorization: `Bearer ${C.anonKey}`, "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) throw new Error(data.error || "request_failed");
+    return data;
+  }
+
+  async function pay() {
+    $("payErr").textContent = "";
+    const btn = $("payBtn"); btn.disabled = true;
+    try {
+      const order = await api("razorpay-create-order", { booking_id: id });
+      const rz = new Razorpay({
+        key: order.key_id,
+        amount: order.amount,
+        currency: order.currency,
+        order_id: order.order_id,
+        name: "SnapAI",
+        description: `${order.plan} · Event capture`,
+        prefill: { name: order.name || "", email: order.email || "", contact: order.contact || "" },
+        theme: { color: "#4A1D5C" },
+        handler: async function (resp) {
+          try {
+            await api("razorpay-verify-payment", {
+              booking_id: id,
+              razorpay_order_id: resp.razorpay_order_id,
+              razorpay_payment_id: resp.razorpay_payment_id,
+              razorpay_signature: resp.razorpay_signature,
+            });
+            location.href = `/thanks?b=${encodeURIComponent(id)}&plan=${encodeURIComponent(plan || "")}&paid=1`;
+          } catch (e) {
+            $("payErr").textContent = S.t("e_generic"); btn.disabled = false;
+          }
+        },
+        modal: { ondismiss: function () { btn.disabled = false; } },
+      });
+      rz.on("payment.failed", function (resp) {
+        $("payErr").textContent = (resp && resp.error && resp.error.description) || S.t("e_generic");
+        btn.disabled = false;
+      });
+      rz.open();
+    } catch (e) {
+      console.error(e); $("payErr").textContent = S.t("e_generic"); btn.disabled = false;
+    }
+  }
+
+  const amount = planAmount(plan);
+  if (id && !waitlist && !paid && amount) {
+    $("amt").textContent = "₹" + amount;
+    $("payBtn").hidden = false;
+    $("payBtn").addEventListener("click", pay);
+  } else { $("testNote").hidden = true; }
+  if (paid && window.fbq) fbq("track", "Purchase", { currency: "INR" });
+  document.addEventListener("snap:lang", render); render();
+})();
+</script>
+</body>
+</html>

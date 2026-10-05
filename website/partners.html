@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SnapAI Partners · Earn by capturing events</title>
+<meta name="description" content="Photographers, event organisers, balloon decorators and students in Delhi NCR: get booked to capture birthdays and family events with the SnapAI app.">
+<meta property="og:title" content="SnapAI Partners · Get booked to capture events near you">
+<meta property="og:image" content="https://jksqxvdoutwigirnqfea.supabase.co/storage/v1/object/public/site/hero-birthday.jpg">
+<meta name="theme-color" content="#001C70">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/style.css">
+<script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
+</head>
+<body class="partners">
+<header class="site-header" id="site-header"></header>
+<main>
+  <section class="p-hero">
+    <div class="wrap">
+      <div class="eyebrow" style="color:var(--marigold-2)" data-i18n="pt_eyebrow"></div>
+      <h1 data-i18n="pt_title"></h1>
+      <p class="lead" data-i18n="pt_lead"></p>
+      <a class="btn btn-primary" href="#register" data-i18n="pt_join" style="margin-top:12px"></a>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h2 data-i18n="pt_who"></h2>
+      <div class="who" style="margin-top:16px">
+        <div data-i18n="w1"></div><div data-i18n="w2"></div><div data-i18n="w3"></div><div data-i18n="w4"></div><div data-i18n="w5"></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="wrap">
+      <h2 data-i18n="pt_how"></h2>
+      <div class="steps" style="margin-top:18px">
+        <div class="step"><h3 data-i18n="ps1_t"></h3><p data-i18n="ps1_p"></p></div>
+        <div class="step"><h3 data-i18n="ps2_t"></h3><p data-i18n="ps2_p"></p></div>
+        <div class="step"><h3 data-i18n="ps3_t"></h3><p data-i18n="ps3_p"></p></div>
+        <div class="step"><h3 data-i18n="ps4_t"></h3><p data-i18n="ps4_p"></p></div>
+      </div>
+      <div class="card" style="margin-top:22px;box-shadow:none">
+        <h3 data-i18n="pt_need"></h3>
+        <ul style="margin:0;padding-left:1.2em" class="muted"><li data-i18n="need_1"></li><li data-i18n="need_2"></li><li data-i18n="need_3"></li></ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="register" style="padding-top:0">
+    <div class="wrap" style="max-width:760px">
+      <form id="pForm" class="card" novalidate>
+        <h2 data-i18n="pf_title"></h2>
+        <div class="form-grid">
+          <div class="form-grid two">
+            <label class="f"><span data-i18n="f_name"></span><input id="name" required autocomplete="name" maxlength="120"></label>
+            <label class="f"><span data-i18n="f_phone"></span><input id="phone" required inputmode="numeric" autocomplete="tel-national" maxlength="14" data-i18n-ph="ph_phone"></label>
+          </div>
+          <div class="form-grid two">
+            <label class="f"><span data-i18n="f_email"></span><input id="email" type="email" autocomplete="email" maxlength="200"></label>
+            <label class="f"><span data-i18n="pf_business"></span><input id="business_name" maxlength="120"></label>
+          </div>
+          <div class="f" style="display:flex;flex-direction:column;gap:6px;font-weight:600"><span data-i18n="pf_type"></span>
+            <div class="chips" role="radiogroup">
+              <label class="chip"><input type="radio" name="ptype" value="Photographer" checked><span data-i18n="t_photographer"></span></label>
+              <label class="chip"><input type="radio" name="ptype" value="Event Organiser"><span data-i18n="t_organiser"></span></label>
+              <label class="chip"><input type="radio" name="ptype" value="Balloon Decorator"><span data-i18n="t_decorator"></span></label>
+              <label class="chip"><input type="radio" name="ptype" value="Student"><span data-i18n="t_student"></span></label>
+              <label class="chip"><input type="radio" name="ptype" value="Other"><span data-i18n="t_other"></span></label>
+            </div></div>
+          <div class="f" style="display:flex;flex-direction:column;gap:6px;font-weight:600"><span data-i18n="pf_exp"></span>
+            <div class="chips" role="radiogroup">
+              <label class="chip"><input type="radio" name="exp" value="New" checked><span data-i18n="pf_new"></span></label>
+              <label class="chip"><input type="radio" name="exp" value="Pro"><span data-i18n="pf_pro"></span></label>
+            </div></div>
+          <div class="f" style="display:flex;flex-direction:column;gap:6px;font-weight:600"><span data-i18n="pf_areas"></span>
+            <div class="chips" id="areas"></div></div>
+          <div class="form-grid two">
+            <label class="f"><span data-i18n="pf_phone_model"></span><input id="phone_model" maxlength="80" placeholder="e.g. iPhone 13 / Samsung S23"></label>
+            <label class="f"><span data-i18n="pf_link"></span><input id="portfolio_link" type="url" maxlength="300" placeholder="https://instagram.com/..."></label>
+          </div>
+          <label class="check"><input type="checkbox" id="whatsapp_ok" checked><span data-i18n="f_wa"></span></label>
+          <label class="check"><input type="checkbox" id="consent"><span data-i18n="pf_consent"></span></label>
+        </div>
+        <p class="err" id="err" role="alert"></p>
+        <button class="btn btn-primary" type="submit" id="submitBtn" data-i18n="pf_submit"></button>
+      </form>
+      <div id="done" class="card" hidden style="text-align:center">
+        <h2 data-i18n="pf_done_title"></h2>
+        <p id="doneText"></p>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer" id="site-footer"></footer>
+<script src="/assets/app.js"></script>
+<script>
+(function(){
+  const S = window.SNAP, $ = (id) => document.getElementById(id);
+  $("areas").innerHTML = S.CONFIG.areas.map(a => `<label class="chip"><input type="checkbox" value="${a}"><span>${a}</span></label>`).join("");
+  let pid = "";
+  document.addEventListener("snap:lang", () => { if (pid) $("doneText").textContent = S.t("pf_done_p").replace("{id}", pid); });
+  $("pForm").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const phone = $("phone").value.replace(/\D/g,"").replace(/^(91|0)(?=\d{10}$)/,"");
+    const areas = [...document.querySelectorAll("#areas input:checked")].map(i => i.value);
+    let e = "";
+    if ($("name").value.trim().length < 2) e = S.t("e_required");
+    else if (!/^[6-9]\d{9}$/.test(phone)) e = S.t("e_phone");
+    else if (!areas.length) e = S.t("e_required");
+    else if (!$("consent").checked) e = S.t("e_consent");
+    if (e) { $("err").textContent = e; return; }
+    $("err").textContent = "";
+    const btn = $("submitBtn"); btn.disabled = true; btn.textContent = S.t("sending");
+    const src = S.captureSource();
+    try {
+      pid = await S.rpc("submit_partner", {
+        name: $("name").value.trim(), phone, email: $("email").value.trim(), whatsapp_ok: $("whatsapp_ok").checked,
+        business_name: $("business_name").value.trim(), partner_type: document.querySelector("input[name=ptype]:checked").value,
+        experience: document.querySelector("input[name=exp]:checked").value, areas_served: areas,
+        phone_model: $("phone_model").value.trim(), portfolio_link: $("portfolio_link").value.trim(),
+        consent: true, language: S.lang === "hi" ? "HI" : "EN", source: src.source, utm: src.utm,
+      });
+      S.syncLead("partner", pid, "created");
+      if (window.fbq) fbq("track", "Lead", { content_category: "partner" });
+      $("pForm").hidden = true; $("done").hidden = false;
+      $("doneText").textContent = S.t("pf_done_p").replace("{id}", pid);
+      $("done").scrollIntoView({ behavior: "smooth", block: "center" });
+    } catch (err) {
+      console.error(err); $("err").textContent = S.t("e_generic");
+      btn.disabled = false; btn.textContent = S.t("pf_submit");
+    }
+  });
+})();
+</script>
+</body>
+</html>
