@@ -1,0 +1,75 @@
+# Birthday clip queue — I will download + process ALL of these when you say "go".
+# One per line. '#' lines ignored. Optional trim: URL | 0:12-0:28
+# (Duplicates and already-downloaded clips are skipped automatically at run time.)
+
+# ── batch 1 ──
+https://youtu.be/3O5GnfY_irQ
+https://youtu.be/AHb3KWEu5P4
+https://youtu.be/lcVltrzM2MA
+https://youtu.be/brwyPZf-DaE
+https://youtu.be/5szBNPdOKMs
+https://youtu.be/Z7jlq8mk3KA
+https://youtu.be/gz-13oJCRZ0
+https://youtu.be/Y35YCSZ1TQg
+https://youtu.be/EHbAF-GQIls
+https://youtu.be/Bu432gro_Jo
+https://youtu.be/nM6BRzjCUL0
+
+# ── batch 2 ──
+https://youtu.be/_9e6AeMDu4g
+https://youtu.be/HFRrKifFhm8
+https://youtu.be/RemIyhfK5-s
+https://youtu.be/Hp9RL0qFPCk
+https://youtu.be/moJ56uYsVVw
+https://youtu.be/vUTAgOxwP_8
+https://youtu.be/Uk8TVPd4oEk
+https://youtu.be/3HgooDr9T6k
+https://youtu.be/kRMfakhppjM
+https://youtu.be/0NSnH-8a3zs
+https://youtu.be/qXac8RA0fXs
+https://youtu.be/6pSmKV_0mF4
+https://youtu.be/-vRLLXiUt6Y
+https://youtu.be/D8wsqakX96A
+https://youtu.be/LmSTMW3vUqQ
+https://youtu.be/LN85XZ53UIg
+https://youtu.be/SPcL__PkXF0
+https://youtu.be/il9c-6oszU0
+https://youtu.be/vfg0tZAFmtA
+https://youtu.be/WJ1lmaIUM1A
+https://youtu.be/vRPbEfnvo_g
+
+# ── batch 3 ──
+https://youtu.be/J80IH02GXAs
+https://youtu.be/sv8ZUK1zRpg
+https://youtu.be/m-dwX_aBIKE
+https://youtu.be/_Jw2UYEtOYk
+https://youtu.be/m4EtFycoHi8
+https://youtu.be/GePoS45P8_k
+https://youtu.be/K2Sg_hQJ85Q
+https://youtu.be/x5NLLfwPE1I
+https://youtu.be/Jxx-i_Bm4bg
+https://youtu.be/ZxYhiuliMPQ
+https://youtu.be/OE70sAfAC6Y
+https://youtu.be/AQAA-7RFqC4
+https://youtu.be/2wZdL5tTRj0
+https://youtu.be/55SNmNof2ys
+https://youtu.be/nEn6gbPkxlI
+https://youtu.be/XLJwSs4iL9M
+https://youtu.be/XubpHFEQoIw
+https://youtu.be/JgETOoXPG9Y
+https://youtu.be/gCksYnWV-Z8
+https://youtu.be/Ve2GjOupVLg
+https://youtu.be/STspWa4gvPE
+https://youtu.be/vDW1jk2N-jE
+https://youtu.be/BoqpRdsUOvA
+https://youtu.be/k_HMt7sZIWE
+https://youtu.be/Alf0p2H7heQ
+https://youtu.be/cLBLOmGvBP0
+https://youtu.be/24lCUVpyQaA
+https://youtu.be/mZHLknOxTZU
+https://youtu.be/d_ppZXoTDdo
+https://youtu.be/Ohw6ovYL5NQ
+https://youtu.be/9-qKgYF8kZo
+https://youtu.be/hZtkufV5tjs
+https://youtu.be/FSskZMnmJxI
+https://youtu.be/vo9ez73wX8U
