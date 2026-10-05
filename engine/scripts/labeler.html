@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Snappy Moment Labeler</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+       background: #fafaf9; color: #0f172a; }
+.bar { padding: 12px 18px; background: #1e1b4b; color: #fff; display: flex;
+       justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; }
+.bar h1 { margin: 0; font-size: 17px; font-weight: 700; }
+.bar small { color: #c7d2fe; font-size: 12px; }
+.app { padding: 16px; display: grid; grid-template-columns: 1fr 380px; gap: 16px;
+       max-width: 1500px; margin: 0 auto; }
+@media (max-width: 900px) { .app { grid-template-columns: 1fr; } }
+.video-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+              padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+video { width: 100%; max-height: 60vh; border-radius: 8px; background: #000; }
+.controls { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px;
+            align-items: center; }
+.controls input[type=file] { font-size: 13px; }
+.tcode { font-family: ui-monospace, Menlo, monospace; font-size: 14px;
+         padding: 4px 10px; background: #f1f5f9; border-radius: 6px; }
+button { font: inherit; padding: 8px 14px; border-radius: 8px; border: 0;
+         cursor: pointer; transition: .12s; }
+button.primary { background: #6366f1; color: #fff; font-weight: 600; }
+button.primary:hover { background: #4f46e5; }
+button.ghost { background: #fff; border: 1px solid #e5e7eb; color: #334155; }
+button.ghost:hover { background: #f1f5f9; }
+.tag-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+               margin: 12px 0; }
+.tag-buttons button { padding: 10px 6px; font-size: 13px; line-height: 1.2;
+                       background: #fff; border: 2px solid #e5e7eb; }
+.tag-buttons button:hover { border-color: #6366f1; background: #eef2ff; }
+.tag-buttons .em { font-size: 18px; display: block; margin-bottom: 2px; }
+.right-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+              padding: 14px; max-height: 80vh; overflow: auto; }
+.right-card h2 { margin: 0 0 8px; font-size: 14px; text-transform: uppercase;
+                  letter-spacing: 0.06em; color: #64748b; }
+.row { display: flex; align-items: center; gap: 8px; padding: 8px;
+       border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+.row .ts { font-family: ui-monospace, Menlo, monospace; color: #6366f1;
+           cursor: pointer; min-width: 70px; }
+.row .ts:hover { text-decoration: underline; }
+.row .moment { flex: 1; }
+.row .keep { font-size: 11px; padding: 2px 8px; border-radius: 12px; }
+.row .keep.yes { background: #d1fae5; color: #065f46; }
+.row .keep.no { background: #fee2e2; color: #991b1b; }
+.row .x { color: #ef4444; cursor: pointer; opacity: 0.5; }
+.row .x:hover { opacity: 1; }
+.empty { color: #94a3b8; padding: 20px 8px; text-align: center; font-size: 13px; }
+.kbd { display: inline-block; padding: 1px 6px; background: #f1f5f9;
+       border: 1px solid #e2e8f0; border-radius: 4px; font-family: monospace;
+       font-size: 11px; }
+.help { font-size: 12px; color: #64748b; margin: 10px 0; line-height: 1.6; }
+.stats { display: flex; gap: 14px; font-size: 12px; color: #64748b;
+         padding-top: 10px; border-top: 1px solid #f1f5f9; margin-top: 10px; }
+.stats b { color: #0f172a; font-size: 18px; display: block; }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <h1>📸 Snappy Moment Labeler</h1>
+  <small>Drop video → mark keepers → export CSV. Saves automatically to browser.</small>
+</div>
+
+<div class="app">
+  <div class="video-card">
+    <video id="video" controls></video>
+
+    <div class="controls">
+      <input type="file" id="file" accept="video/*">
+      <span class="tcode" id="tcode">00:00.000</span>
+      <button class="ghost" onclick="seek(-5)">⏮ -5s</button>
+      <button class="ghost" onclick="seek(-1)">-1s</button>
+      <button class="ghost" onclick="togglePlay()">▶ / ⏸</button>
+      <button class="ghost" onclick="seek(1)">+1s</button>
+      <button class="ghost" onclick="seek(5)">+5s ⏭</button>
+    </div>
+
+    <div class="help">
+      <b>Hotkeys:</b>
+      <span class="kbd">space</span> play/pause &nbsp;
+      <span class="kbd">←</span><span class="kbd">→</span> -/+1s &nbsp;
+      <span class="kbd">⇧←</span><span class="kbd">⇧→</span> -/+5s &nbsp;
+      <span class="kbd">k</span> mark KEEP at cursor &nbsp;
+      <span class="kbd">x</span> mark SKIP at cursor
+    </div>
+
+    <h3 style="font-size:13px;color:#64748b;text-transform:uppercase;letter-spacing:.06em;
+               margin:14px 0 4px">At the current moment, what is it?</h3>
+    <div class="tag-buttons" id="tags"></div>
+  </div>
+
+  <div class="right-card">
+    <h2>Labels (<span id="count">0</span>)</h2>
+    <div id="rows"></div>
+
+    <div class="stats" id="stats">
+      <div><b id="stat-keep">0</b>keepers</div>
+      <div><b id="stat-skip">0</b>skips</div>
+      <div><b id="stat-classes">0</b>classes</div>
+    </div>
+
+    <div style="margin-top:14px;display:flex;gap:6px;flex-wrap:wrap">
+      <button class="primary" onclick="exportCSV()">Export CSV</button>
+      <button class="ghost" onclick="exportJSON()">Export JSON</button>
+      <button class="ghost" onclick="clearAll()" style="color:#ef4444">Clear all</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════
+// Snappy Moment Labeler — single-file HTML, runs entirely in your browser.
+// Saves all labels to localStorage so you can close the tab and come back.
+//
+// Output CSV format (matches what backend.training expects):
+//   filename, timestamp_seconds, moment_class, keep_or_skip, notes
+// ════════════════════════════════════════════════════════════════════════
+
+const MOMENT_CLASSES = [
+  { id: "cake_cutting",     em: "🎂", label: "Cake cutting" },
+  { id: "ring_ceremony",    em: "💍", label: "Ring ceremony" },
+  { id: "first_dance",      em: "💃", label: "First dance" },
+  { id: "bouquet_toss",     em: "💐", label: "Bouquet toss" },
+  { id: "candle_blowing",   em: "🕯️", label: "Blowing candles" },
+  { id: "group_photo",      em: "👥", label: "Group photo" },
+  { id: "champagne_toast",  em: "🥂", label: "Champagne toast" },
+  { id: "confetti_burst",   em: "🎊", label: "Confetti burst" },
+  { id: "sports_action",    em: "🏆", label: "Sports action" },
+  { id: "hug_moment",       em: "🤗", label: "Hug" },
+  { id: "general_peak",     em: "✨", label: "Other beautiful" },
+];
+
+const STORAGE_KEY = "snappy.labeler.v1";
+let videoFile = null;
+let labels = [];      // {filename, t, moment, keep:bool, notes}
+
+// ── State persistence ──────────────────────────────────────────────────
+function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(labels)); }
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) labels = JSON.parse(raw);
+  } catch {}
+  render();
+}
+
+// ── Render label rows ──────────────────────────────────────────────────
+function render() {
+  const v = document.getElementById("video");
+  const filename = videoFile?.name || "(no file)";
+  const rows = document.getElementById("rows");
+  document.getElementById("count").textContent = labels.length;
+  document.getElementById("stat-keep").textContent =
+    labels.filter(l => l.keep).length;
+  document.getElementById("stat-skip").textContent =
+    labels.filter(l => !l.keep).length;
+  document.getElementById("stat-classes").textContent =
+    new Set(labels.map(l => l.moment)).size;
+
+  if (!labels.length) {
+    rows.innerHTML = '<div class="empty">No labels yet. Mark moments as you scrub the video.<br><br>Tip: use <span class="kbd">space</span>, <span class="kbd">k</span>, <span class="kbd">x</span></div>';
+    return;
+  }
+  rows.innerHTML = "";
+  for (const [i, l] of [...labels].sort((a, b) => a.t - b.t).entries()) {
+    const row = document.createElement("div");
+    row.className = "row";
+    row.innerHTML = `
+      <span class="ts" data-t="${l.t}">${formatT(l.t)}</span>
+      <span class="moment">${classLabel(l.moment)}</span>
+      <span class="keep ${l.keep ? "yes" : "no"}">${l.keep ? "keep" : "skip"}</span>
+      <span class="x" data-i="${i}" title="Remove">✕</span>`;
+    rows.appendChild(row);
+  }
+  // wire jump-to-time
+  rows.querySelectorAll(".ts").forEach(el => {
+    el.addEventListener("click", () => { v.currentTime = parseFloat(el.dataset.t); });
+  });
+  rows.querySelectorAll(".x").forEach(el => {
+    el.addEventListener("click", () => {
+      const i = parseInt(el.dataset.i);
+      const sorted = [...labels].sort((a, b) => a.t - b.t);
+      const target = sorted[i];
+      const realIdx = labels.indexOf(target);
+      if (realIdx >= 0) labels.splice(realIdx, 1);
+      save(); render();
+    });
+  });
+}
+
+function classLabel(id) {
+  const c = MOMENT_CLASSES.find(c => c.id === id);
+  return c ? `${c.em} ${c.label}` : id;
+}
+
+// ── Time formatting ────────────────────────────────────────────────────
+function formatT(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec - m * 60;
+  return `${String(m).padStart(2, "0")}:${s.toFixed(2).padStart(5, "0")}`;
+}
+
+// ── Add/remove labels ─────────────────────────────────────────────────
+function addLabel(moment, keep) {
+  const v = document.getElementById("video");
+  const filename = videoFile?.name || "unknown.mp4";
+  if (!videoFile) { alert("Drop a video file first."); return; }
+  labels.push({ filename, t: v.currentTime, moment, keep, notes: "" });
+  save(); render();
+}
+
+// ── Tag button row ────────────────────────────────────────────────────
+function buildTags() {
+  const root = document.getElementById("tags");
+  root.innerHTML = "";
+  for (const c of MOMENT_CLASSES) {
+    const btn = document.createElement("button");
+    btn.innerHTML = `<span class="em">${c.em}</span>${c.label}`;
+    btn.title = `Add at current time as keep: ${c.label}`;
+    btn.onclick = () => addLabel(c.id, true);
+    root.appendChild(btn);
+  }
+}
+
+// ── Video controls ────────────────────────────────────────────────────
+function togglePlay() {
+  const v = document.getElementById("video");
+  if (v.paused) v.play(); else v.pause();
+}
+function seek(delta) {
+  const v = document.getElementById("video");
+  v.currentTime = Math.max(0, v.currentTime + delta);
+}
+
+// ── Export ────────────────────────────────────────────────────────────
+function exportCSV() {
+  if (!labels.length) { alert("Nothing to export yet."); return; }
+  const rows = [["filename", "timestamp_seconds", "moment_class", "keep", "notes"]];
+  for (const l of [...labels].sort((a, b) => a.t - b.t)) {
+    rows.push([l.filename, l.t.toFixed(3), l.moment,
+               l.keep ? "1" : "0",
+               (l.notes || "").replace(/[\r\n,]/g, " ")]);
+  }
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+  download(`snappy_labels_${(videoFile?.name || "video").replace(/\.\w+$/, "")}_${Date.now()}.csv`,
+           csv, "text/csv");
+}
+function exportJSON() {
+  const payload = {
+    schema: "snappy-labels-v1",
+    file: videoFile?.name,
+    exported_at: new Date().toISOString(),
+    labels: [...labels].sort((a, b) => a.t - b.t),
+  };
+  download(`snappy_labels_${(videoFile?.name || "video").replace(/\.\w+$/, "")}_${Date.now()}.json`,
+           JSON.stringify(payload, null, 2), "application/json");
+}
+function download(filename, content, mime) {
+  const blob = new Blob([content], { type: mime });
+  const url  = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function clearAll() {
+  if (!confirm("Clear all labels? This can't be undone.")) return;
+  labels = []; save(); render();
+}
+
+// ── Wire up ───────────────────────────────────────────────────────────
+window.addEventListener("DOMContentLoaded", () => {
+  buildTags(); load();
+
+  const v = document.getElementById("video");
+  const tcode = document.getElementById("tcode");
+  v.addEventListener("timeupdate", () => {
+    tcode.textContent = formatT(v.currentTime);
+  });
+
+  document.getElementById("file").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    videoFile = file;
+    v.src = URL.createObjectURL(file);
+    v.load();
+    document.title = `📸 Snappy Labeler — ${file.name}`;
+    render();
+  });
+
+  // Hotkeys
+  document.addEventListener("keydown", (e) => {
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+    if (e.key === " ")               { e.preventDefault(); togglePlay(); }
+    else if (e.key === "ArrowLeft")  { e.preventDefault(); seek(e.shiftKey ? -5 : -1); }
+    else if (e.key === "ArrowRight") { e.preventDefault(); seek(e.shiftKey ? 5  :  1); }
+    else if (e.key === "k")          { addLabel("general_peak", true); }
+    else if (e.key === "x")          { addLabel("general_peak", false); }
+  });
+});
+</script>
+
+</body>
+</html>
