@@ -1,0 +1,40 @@
+{
+  "_readme": "Extend the behavior suite here \u2014 no code changes needed. junk_allow: per-clip capture allowances for clips labeled not_birthday where captures are legitimate OR a known CLIP-floor limit (the VLM occasion veto empties their ALBUMS). fixture_cases / clip_cases: see behavior_suite.py header.",
+  "junk_allow": {
+    "mZHLknOxTZU": 60,
+    "_mZHLknOxTZU_why": "Title card: 'Lakshya's Birthday Celebration' \u2014 a REAL birthday video; labeled not_birthday only for classifier training. Capturing is correct.",
+    "7826147-hd_1080_1920_30fps": 8,
+    "_7826147_why": "Party decorations (number balloon, confetti, treats) \u2014 establishing shots are by-design captures.",
+    "SPcL__PkXF0": 25,
+    "_SPcL_why": "CLIP-floor: confetti ad scores celebration-ish on object classes; capture-side cannot separate. Known CLIP-floor limit (celebration-lookalike content); a stronger context model may close it later.",
+    "dMqkMt7ZCw8": 25,
+    "_dMqk_why": "CLIP-floor: mom-and-baby reads as 'gifting' vibes. Known CLIP-floor limit (celebration-lookalike content); a stronger context model may close it later.",
+    "3J5CoyxBnPw": 6,
+    "_3J5C_why": "CLIP-floor: sparse gifting-vibe frames. Known CLIP-floor limit; a stronger context model may close it later.",
+    "Q2HZP_69Nek": 5,
+    "_Q2HZP_why": "CLIP-floor: temple garlands/warm lights read candle-ish. Known CLIP-floor limit; a stronger context model may close it later.",
+    "gICDP7M1Ano": 3,
+    "_gICD_why": "Stadium-crowd clip: people + snacks persist as food/crowd vibes (CLIP-floor). 3 generic captures tolerated; album relevancy prunes them."
+  },
+  "fixture_cases": [
+    {
+      "name": "baby_reaction",
+      "dir": "baby_reaction",
+      "repeat": 3,
+      "max_captures": 0
+    }
+  ],
+  "clip_cases": [
+    {
+      "name": "giftbox_surprise",
+      "cid": "GnmRhX3LF84",
+      "min_captures": 3
+    }
+  ],
+  "known_misses": {
+    "KWsi6u8_CWI": "RESOLVED by zero-capture rescue: when a session ends with 0 captures, the VLM answers a strict YES/NO (is this a birthday celebration?) on ~10 sampled frames (upload file or live reservoir) and rescues confirmed moments. Verified: this clip \u2192 4-photo album; pool-kids junk \u2192 0/10 confirmed, stays empty. Frame-level CLIP still cannot score screen-dominant scenes \u2014 that remains true and documented above."
+  },
+  "notes": {
+    "pool_loop_stress": "Looping the pool fixture 5x (its 14 strongest-ever frames on a cycle) arms the standard gifting 4-in-25 rule \u2014 an artificial stress harsher than real footage. The actual 41s pool video verifies 0. Suite keeps pool at repeat=1 by design."
+  }
+}
