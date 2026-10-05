@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Snappy — AI Event Photography</title>
+<style>
+/* ── Reset & tokens ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0c0c10;--paper:#f9f7f3;--cream:#f0ebe0;
+  --amber:#e69520;--amber2:#ffc940;--amber-glow:rgba(230,149,32,.18);
+  --green:#17b86a;--red:#e03535;--blue:#2655d4;--purple:#7c3aed;
+  --muted:#888078;--border:rgba(12,12,16,.10);
+  --card:rgba(255,255,255,.75);--shadow:0 4px 28px rgba(12,12,16,.09);
+  --r:14px;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;overflow-x:hidden}
+
+/* ── Header ── */
+header{position:sticky;top:0;z-index:200;background:rgba(249,247,243,.93);backdrop-filter:blur(14px);border-bottom:1.5px solid var(--border);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 28px}
+.logo{font-size:22px;font-weight:800;letter-spacing:-.5px;display:flex;align-items:center;gap:7px}
+.logo span{color:var(--amber)}
+.hdr-right{display:flex;align-items:center;gap:14px;font-size:12px;color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block;transition:.3s}
+.dot.live{background:var(--green);box-shadow:0 0 8px var(--green);animation:blink 1.8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+.session-chip{background:var(--cream);border:1px solid var(--border);border-radius:20px;padding:3px 12px;font-size:11px;font-weight:600;font-family:monospace}
+
+/* ── Layout ── */
+.page{max-width:1400px;margin:0 auto;padding:24px 20px;display:flex;flex-direction:column;gap:20px}
+
+/* ── Cards ── */
+.card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);padding:20px;box-shadow:var(--shadow);backdrop-filter:blur(6px)}
+.card-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+
+/* ── Setup ── */
+#setup{display:flex;gap:40px;align-items:flex-start}
+.setup-hero{flex:1}
+.setup-hero h1{font-size:32px;font-weight:800;line-height:1.1;margin-bottom:10px}
+.setup-hero h1 em{color:var(--amber);font-style:italic}
+.setup-hero p{color:var(--muted);font-size:14px;line-height:1.65;max-width:420px}
+.setup-form{min-width:300px;display:flex;flex-direction:column;gap:12px}
+.field label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px}
+input,select,textarea{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;background:#fff;color:var(--ink);outline:none;transition:.2s;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:var(--amber)}
+textarea{resize:vertical;min-height:70px;font-size:13px}
+.btn{padding:11px 22px;border:none;cursor:pointer;border-radius:9px;font-size:13px;font-weight:700;letter-spacing:.03em;transition:.2s;font-family:inherit}
+.btn-amber{background:var(--amber);color:#fff;box-shadow:0 3px 16px var(--amber-glow)}
+.btn-amber:hover{background:#d4871a;transform:translateY(-1px)}
+.btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--ink)}
+.btn-ghost:hover{background:var(--cream)}
+.btn-red{background:var(--red);color:#fff}
+.btn-green{background:var(--green);color:#fff}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+
+/* ── Main live area ── */
+#live-area{display:none;flex-direction:column;gap:20px}
+#live-area.active{display:flex}
+
+.live-grid{display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start}
+
+/* ── Camera ── */
+#cam-wrap{position:relative;background:#0c0c10;border-radius:var(--r);overflow:hidden;aspect-ratio:4/3}
+#video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+#mesh-preview{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;z-index:1}
+#mesh-preview.active{display:block}
+#canvas{display:none}
+.cam-overlay{position:absolute;inset:0;pointer-events:none;z-index:10}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:20}
+.flash.go{animation:flash-anim .45s ease-out forwards}
+@keyframes flash-anim{0%{opacity:.85}100%{opacity:0}}
+
+/* Score ring */
+.score-ring-wrap{position:absolute;top:14px;right:14px;width:70px;height:70px}
+.score-ring-wrap svg{transform:rotate(-90deg)}
+.score-ring-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:monospace;font-size:18px;font-weight:700;line-height:1}
+.score-ring-label small{font-size:8px;opacity:.6;margin-top:2px;font-weight:400}
+
+/* Live badge */
+.live-badge{position:absolute;top:14px;left:14px;background:var(--green);color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;display:flex;align-items:center;gap:5px;box-shadow:0 2px 10px rgba(23,184,106,.4)}
+.moment-badge{position:absolute;top:50px;left:14px;background:rgba(0,0,0,.65);color:var(--amber2);font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;backdrop-filter:blur(4px);max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Bottom bar */
+.cam-bottom{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.72));padding:14px 16px 10px}
+.gaze-bar{height:4px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden;margin-bottom:8px}
+.gaze-fill{height:100%;background:var(--green);border-radius:2px;transition:width .3s ease;width:0%}
+.cam-status{font-size:11px;color:rgba(255,255,255,.7);font-family:monospace}
+.cam-status.hot{color:var(--amber2)}
+.capture-flash-text{color:var(--amber2);font-weight:700}
+
+/* ── Right panel ── */
+.right-col{display:flex;flex-direction:column;gap:14px}
+
+/* Stats grid */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat-box{background:var(--cream);border-radius:9px;padding:11px 13px}
+.stat-val{font-size:22px;font-weight:700;font-family:monospace;line-height:1}
+.stat-val.amber{color:var(--amber)}
+.stat-key{font-size:10px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
+
+/* Metric bars */
+.metric{margin-bottom:9px}
+.metric-row{display:flex;justify-content:space-between;margin-bottom:3px;font-size:11px}
+.metric-name{color:var(--muted)}
+.metric-num{font-family:monospace;font-weight:600}
+.bar{height:4px;background:var(--cream);border-radius:2px;overflow:hidden}
+.bar-fill{height:100%;border-radius:2px;transition:width .35s ease}
+
+/* Trend */
+.trend-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700}
+.t-rising{background:rgba(23,184,106,.12);color:var(--green)}
+.t-falling{background:rgba(224,53,53,.10);color:var(--red)}
+.t-peak{background:var(--amber-glow);color:var(--amber)}
+.t-stable{background:var(--cream);color:var(--muted)}
+
+/* Active moments */
+.moment-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+.mtag{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;background:var(--amber-glow);color:var(--amber);border:1px solid rgba(230,149,32,.3)}
+.mtag.active{background:var(--amber);color:#fff}
+
+/* ── Score chart ── */
+.chart-wrap{height:60px;position:relative;overflow:hidden}
+#score-chart{width:100%;height:100%}
+
+/* ── Frame gallery ── */
+#gallery-section{display:none}
+#gallery-section.active{display:block}
+.gallery-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;max-height:320px;overflow-y:auto;padding-right:4px}
+.gallery-grid::-webkit-scrollbar{width:4px}
+.gallery-grid::-webkit-scrollbar-track{background:var(--cream)}
+.gallery-grid::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.gframe{position:relative;aspect-ratio:4/3;border-radius:7px;overflow:hidden;cursor:pointer;transition:.2s;border:2px solid transparent}
+.gframe:hover{transform:scale(1.04)}
+.gframe.captured{border-color:var(--amber);box-shadow:0 0 10px var(--amber-glow)}
+.gframe img{width:100%;height:100%;object-fit:cover;display:block}
+.gframe-badge{position:absolute;bottom:2px;left:2px;right:2px;display:flex;justify-content:space-between;align-items:center}
+.gframe-score{font-size:8px;font-family:monospace;background:rgba(0,0,0,.65);color:#fff;padding:1px 4px;border-radius:3px}
+.gframe-moment{font-size:7px;background:var(--amber);color:#fff;padding:1px 4px;border-radius:3px;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gframe-gaze{position:absolute;top:3px;right:3px;background:var(--green);color:#fff;font-size:7px;padding:1px 4px;border-radius:3px;display:none}
+.gframe.gaze .gframe-gaze{display:block}
+
+/* ── Captures strip ── */
+.cap-strip{display:flex;gap:7px;flex-wrap:wrap;max-height:180px;overflow-y:auto}
+.cap-thumb{width:70px;height:54px;border-radius:7px;overflow:hidden;cursor:pointer;position:relative;border:2px solid transparent;transition:.2s;flex-shrink:0}
+.cap-thumb:hover{border-color:var(--amber);transform:scale(1.06)}
+.cap-thumb img{width:100%;height:100%;object-fit:cover}
+.cap-thumb .cs{position:absolute;bottom:2px;right:2px;font-size:8px;font-family:monospace;background:rgba(0,0,0,.6);color:#fff;padding:1px 3px;border-radius:2px}
+.cap-thumb .cm{position:absolute;top:2px;left:2px;font-size:7px;background:var(--amber);color:#fff;padding:1px 3px;border-radius:2px;max-width:55px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cap-thumb .fb{position:absolute;top:2px;right:2px;display:flex;gap:2px;opacity:0;transition:.15s}
+.cap-thumb:hover .fb{opacity:1}
+.cap-thumb .fb button{font-size:10px;line-height:1;border:0;border-radius:3px;padding:2px 4px;cursor:pointer;background:rgba(255,255,255,.9)}
+.cap-thumb .fb button.up:hover{background:#17b86a;color:#fff}
+.cap-thumb .fb button.down:hover{background:#e03535;color:#fff}
+.cap-thumb.kept{box-shadow:0 0 0 2px #17b86a inset}
+.cap-thumb.trashed{opacity:.4;filter:grayscale(.6)}
+.no-cap{color:var(--muted);font-size:12px}
+
+/* ── Album ── */
+#album-section{display:none}
+#album-section.active{display:block}
+.album-header-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;gap:16px;flex-wrap:wrap}
+.album-title-block h2{font-size:26px;font-weight:800}
+.album-title-block p{color:var(--muted);font-size:13px;margin-top:4px}
+.album-stats-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.alstat{background:var(--cream);border-radius:9px;padding:8px 14px;font-size:12px}
+.alstat strong{display:block;font-size:18px;font-family:monospace;color:var(--amber)}
+.album-photos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.aphoto{aspect-ratio:4/3;border-radius:10px;overflow:hidden;position:relative;cursor:pointer;transition:.2s}
+.aphoto:first-child{grid-column:span 2;grid-row:span 2}
+.aphoto:hover{transform:scale(1.02)}
+.aphoto img{width:100%;height:100%;object-fit:cover}
+.aphoto .abadge{position:absolute;top:7px;right:7px;background:rgba(0,0,0,.6);color:#fff;font-size:9px;font-family:monospace;padding:2px 6px;border-radius:10px}
+.aphoto .atagg{position:absolute;bottom:7px;left:7px;background:var(--amber);color:#fff;font-size:9px;padding:2px 7px;border-radius:10px;max-width:90%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── Lightbox ── */
+.lbox{display:none;position:fixed;inset:0;z-index:999;background:rgba(12,12,16,.94);align-items:center;justify-content:center;backdrop-filter:blur(10px)}
+.lbox.open{display:flex}
+.lbox img{max-width:92vw;max-height:88vh;border-radius:10px;box-shadow:0 20px 80px rgba(0,0,0,.6)}
+.lbox-close{position:fixed;top:20px;right:20px;background:rgba(255,255,255,.12);border:none;color:#fff;font-size:26px;cursor:pointer;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+
+/* ── Toast ── */
+.toast-wrap{position:fixed;bottom:22px;right:22px;z-index:500;display:flex;flex-direction:column;gap:7px}
+.toast{background:var(--ink);color:#fff;padding:10px 18px;border-radius:10px;font-size:12px;font-family:monospace;box-shadow:0 6px 24px rgba(0,0,0,.4);animation:tin .3s ease;display:flex;align-items:center;gap:8px}
+.toast.ok{background:var(--green)}.toast.warn{background:var(--amber)}.toast.err{background:var(--red)}
+@keyframes tin{from{transform:translateX(80px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* ── Controls row ── */
+.ctrl-row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+
+/* ── Source toggle ── */
+.src-toggle{display:flex;gap:0;border:1.5px solid var(--border);border-radius:9px;overflow:hidden;margin-bottom:4px}
+.src-btn{flex:1;padding:9px 14px;border:none;background:#fff;cursor:pointer;font-size:12px;font-weight:700;color:var(--muted);transition:.2s;font-family:inherit}
+.src-btn.active{background:var(--amber);color:#fff}
+.src-btn:first-child{border-right:1px solid var(--border)}
+
+/* ── Video upload panel ── */
+#video-panel{display:none;flex-direction:column;align-items:center;justify-content:center;
+  background:#0c0c10;border-radius:var(--r);overflow:hidden;aspect-ratio:4/3;position:relative}
+#video-panel.active{display:flex}
+.vup-drop{width:85%;border:2px dashed rgba(255,255,255,.22);border-radius:12px;
+  padding:32px 20px;text-align:center;cursor:pointer;transition:.2s;color:#fff}
+.vup-drop:hover,.vup-drop.dragover{border-color:var(--amber);background:rgba(230,149,32,.08)}
+.vup-drop-icon{font-size:40px;margin-bottom:10px}
+.vup-drop-label{font-size:14px;font-weight:700;margin-bottom:4px}
+.vup-drop-sub{font-size:11px;color:rgba(255,255,255,.45);margin-bottom:14px}
+.vup-file-name{font-size:11px;color:var(--amber2);font-family:monospace;margin-bottom:10px;
+  max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#vup-input{display:none}
+.vup-fps{display:flex;align-items:center;gap:7px;font-size:11px;color:rgba(255,255,255,.5);margin-top:8px}
+.vup-fps input{width:52px;padding:4px 7px;font-size:11px;border-radius:6px;
+  border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;text-align:center}
+
+/* Progress overlay */
+#vup-progress{display:none;flex-direction:column;align-items:center;justify-content:center;
+  position:absolute;inset:0;background:rgba(12,12,16,.88);backdrop-filter:blur(8px);color:#fff;gap:14px}
+#vup-progress.active{display:flex}
+.vup-prog-label{font-size:13px;font-weight:700;font-family:monospace}
+.vup-prog-sub{font-size:11px;color:rgba(255,255,255,.5)}
+.vup-prog-bar-wrap{width:75%;height:6px;background:rgba(255,255,255,.12);border-radius:3px;overflow:hidden}
+.vup-prog-bar{height:100%;background:var(--amber);border-radius:3px;transition:width .4s ease;width:0%}
+.vup-prog-captures{font-size:22px;font-weight:700;color:var(--amber2);font-family:monospace}
+
+/* Done state */
+#vup-done{display:none;flex-direction:column;align-items:center;justify-content:center;
+  position:absolute;inset:0;background:rgba(12,12,16,.9);backdrop-filter:blur(8px);color:#fff;gap:10px}
+#vup-done.active{display:flex}
+.vup-done-icon{font-size:48px}
+.vup-done-title{font-size:18px;font-weight:800}
+.vup-done-sub{font-size:12px;color:rgba(255,255,255,.55)}
+
+  .live-grid{grid-template-columns:1fr}
+  #setup{flex-direction:column}
+  .setup-form{min-width:unset}
+  .aphoto:first-child{grid-column:span 1;grid-row:span 1}
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">📸 Snap<span>py</span></div>
+  <div class="hdr-right">
+    <span class="dot" id="dot"></span>
+    <span id="conn-lbl">Disconnected</span>
+    <span class="session-chip" id="sid-chip" style="display:none"></span>
+  </div>
+</header>
+
+<div class="page">
+
+<!-- ── SETUP ─────────────────────────────────────────────────── -->
+<div class="card" id="setup-card">
+  <div id="setup">
+    <div class="setup-hero">
+      <h1>Shoot the<br><em>perfect moment,</em><br>automatically.</h1>
+      <p style="margin-top:12px">Snappy watches your event through any camera, detects key moments
+      (cake cutting, ring ceremony, group gazes), and auto-captures the best frames in real time.</p>
+      <div style="margin-top:20px;display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)">
+        <span>🎯 VLM prompt-driven moment detection</span>
+        <span>👁️ Multi-person gaze detection</span>
+        <span>⭐ AI shot quality scoring</span>
+        <span>🖼️ Smart album curation</span>
+        <span>📊 Live frame-by-frame analytics</span>
+      </div>
+    </div>
+    <div class="setup-form">
+      <div class="field">
+        <label>Capture Source</label>
+        <div class="src-toggle">
+          <button class="src-btn active" id="src-live" onclick="setSource('live')">📷 Live Camera</button>
+          <button class="src-btn"        id="src-video" onclick="setSource('video')">📹 Upload Video</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Event Name</label>
+        <input id="inp-name" value="Priya's Wedding" placeholder="Name your event"/>
+      </div>
+      <div class="field">
+        <label>Event Type</label>
+        <select id="inp-type">
+          <option value="wedding">💍 Wedding</option>
+          <option value="birthday">🎂 Birthday</option>
+          <option value="party" selected>🎉 Party</option>
+          <option value="corporate">🏢 Corporate</option>
+          <option value="sports">🏆 Sports</option>
+          <option value="general">📷 General</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Moment Prompt <span style="font-size:9px;color:var(--muted)">(what to capture)</span></label>
+        <textarea id="inp-prompt" placeholder="e.g. cake cutting, ring ceremony, first dance, group photo, candle blowing...">cake cutting, ring ceremony, first dance, group photo</textarea>
+      </div>
+      <div class="field">
+        <label>Server URL</label>
+        <input id="inp-server" value="http://localhost:8765"/>
+      </div>
+      <button class="btn btn-amber" id="btn-start" onclick="startSession()">🚀 Start Snappy</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── LIVE AREA ──────────────────────────────────────────────── -->
+<div id="live-area">
+
+  <div class="live-grid">
+
+    <!-- Camera -->
+    <div id="cam-wrap">
+      <video id="video" autoplay muted playsinline></video>
+      <img id="mesh-preview" alt="Live face mesh preview"/>
+      <canvas id="canvas"></canvas>      <div class="cam-overlay">
+        <div class="live-badge"><span class="dot live"></span> LIVE</div>
+        <div class="moment-badge" id="moment-badge">Watching...</div>
+
+        <!-- Score ring -->
+        <div class="score-ring-wrap">
+          <svg viewBox="0 0 70 70" width="70" height="70">
+            <circle cx="35" cy="35" r="28" fill="none" stroke="rgba(255,255,255,.13)" stroke-width="5"/>
+            <circle id="score-arc" cx="35" cy="35" r="28" fill="none" stroke="#e69520" stroke-width="5"
+                    stroke-dasharray="175.9" stroke-dashoffset="175.9" stroke-linecap="round"
+                    style="transition:stroke-dashoffset .3s,stroke .3s"/>
+          </svg>
+          <div class="score-ring-label">
+            <span id="score-num">—</span>
+            <small>SCORE</small>
+          </div>
+        </div>
+
+        <div class="cam-bottom">
+          <div class="gaze-bar"><div class="gaze-fill" id="gaze-fill"></div></div>
+          <div class="cam-status" id="cam-status">Initialising models…</div>
+        </div>
+        <!-- Performance overlay (toggle by pressing 'p'). Lives over the
+             video feed so the operator can watch battery + thermal +
+             priority-tier in real time during dev / first-run testing. -->
+        <div id="perf-overlay" style="
+          position:absolute; top:14px; left:50%; transform:translateX(-50%);
+          background:rgba(0,0,0,.72); color:#fff; font:11px/1.45 ui-monospace,monospace;
+          padding:8px 12px; border-radius:8px; backdrop-filter:blur(4px);
+          pointer-events:none; max-width:280px; display:none; z-index:30;">
+        </div>
+      </div>
+      <div class="flash" id="flash"></div>
+    </div><!-- #cam-wrap -->
+
+    <!-- Video upload panel (shown instead of camera in video mode) -->
+    <div id="video-panel">
+      <div class="vup-drop" id="vup-drop"
+           onclick="document.getElementById('vup-input').click()"
+           ondragover="vupDragOver(event)" ondragleave="vupDragLeave(event)" ondrop="vupDrop(event)">
+        <div class="vup-drop-icon">🎬</div>
+        <div class="vup-drop-label">Drop a video file here</div>
+        <div class="vup-drop-sub">MP4 · MOV · AVI · MKV · WebM</div>
+        <div class="vup-file-name" id="vup-fname">No file selected</div>
+        <button class="btn btn-amber" style="font-size:12px;padding:8px 18px"
+                onclick="event.stopPropagation();document.getElementById('vup-input').click()">
+          Browse…
+        </button>
+        <div class="vup-fps">
+          <span>Sample rate:</span>
+          <input type="number" id="vup-fps-val" value="2" min="0.5" max="10" step="0.5"/>
+          <span>fps</span>
+        </div>
+      </div>
+      <input type="file" id="vup-input" accept="video/*" onchange="vupFileChosen(this)"/>
+
+      <!-- Upload button (shown after file chosen) -->
+      <button class="btn btn-amber" id="vup-upload-btn" style="display:none;margin-top:14px;font-size:13px"
+              onclick="uploadVideo()">🚀 Analyse Video</button>
+
+      <!-- Progress overlay -->
+      <div id="vup-progress">
+        <div class="vup-prog-captures" id="vup-prog-caps">0</div>
+        <div class="vup-prog-label" id="vup-prog-label">Processing…</div>
+        <div class="vup-prog-bar-wrap"><div class="vup-prog-bar" id="vup-prog-bar"></div></div>
+        <div class="vup-prog-sub" id="vup-prog-sub">Analysing frames…</div>
+      </div>
+
+      <!-- Done overlay -->
+      <div id="vup-done">
+        <div class="vup-done-icon">✅</div>
+        <div class="vup-done-title" id="vup-done-title">Done!</div>
+        <div class="vup-done-sub" id="vup-done-sub">—</div>
+        <div style="display:flex;gap:9px;margin-top:6px">
+          <button class="btn btn-green" onclick="generateAlbum()">🖼 Generate Album</button>
+          <button class="btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,.3)"
+                  onclick="vupReset()">⬆ Upload Another</button>
+        </div>
+      </div>
+    </div><!-- #video-panel -->
+
+
+    <div class="right-col">
+
+      <!-- Controls -->
+      <div class="card">
+        <div class="card-title">Controls</div>
+        <div class="ctrl-row">
+          <button class="btn btn-red"   onclick="endSession()">⏹ End</button>
+          <button class="btn btn-green" onclick="generateAlbum()">🖼 Album</button>
+          <button class="btn btn-ghost" onclick="toggleGallery()">🎞 Frames</button>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:var(--muted)">
+          Session: <span id="sid-display" style="font-family:monospace;font-weight:700">—</span>
+          &nbsp;·&nbsp; Prompt: <span id="prompt-display" style="color:var(--amber)">—</span>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="card">
+        <div class="card-title">Live Stats</div>
+        <div class="stats-grid">
+          <div class="stat-box"><div class="stat-val amber" id="st-caps">0</div><div class="stat-key">Captured</div></div>
+          <div class="stat-box"><div class="stat-val" id="st-frames">0</div><div class="stat-key">Frames</div></div>
+          <div class="stat-box"><div class="stat-val" id="st-faces">0</div><div class="stat-key">Faces</div></div>
+          <div class="stat-box"><div class="stat-val" id="st-gaze">0%</div><div class="stat-key">Gaze</div></div>
+        </div>
+      </div>
+
+      <!-- Score chart -->
+      <div class="card">
+        <div class="card-title">Score Timeline</div>
+        <div class="chart-wrap"><canvas id="score-chart"></canvas></div>
+      </div>
+
+      <!-- Quality metrics -->
+      <div class="card">
+        <div class="card-title">Frame Analysis</div>
+        <div id="metrics"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
+          <span style="font-size:11px;color:var(--muted)">Trend:</span>
+          <span class="trend-pill t-stable" id="trend-pill">stable</span>
+        </div>
+        <div style="margin-top:10px">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em">Watching for</div>
+          <div class="moment-tags" id="moment-tags"></div>
+        </div>
+      </div>
+
+      <!-- Live prompt controls (voice + text) -->
+      <div class="card" id="live-prompt-card">
+        <div class="card-title">Live Prompt — change what to capture mid-event</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="live-prompt-input" placeholder="e.g. also catch confetti / switch to sports"
+                 style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);font-size:13px"/>
+          <button class="btn btn-ghost" id="btn-live-send" onclick="sendLivePrompt()">↵</button>
+          <button class="btn btn-ghost" id="btn-voice" onclick="toggleVoice()" title="Hold to dictate">🎙</button>
+        </div>
+        <div id="voice-status" style="font-size:11px;color:var(--muted);margin-top:6px;min-height:14px"></div>
+        <div id="prompt-history" style="margin-top:8px;font-size:11px;color:var(--muted);max-height:80px;overflow-y:auto"></div>
+      </div>
+
+      <!-- Discoveries — auto-classifier finds new moments -->
+      <div class="card" id="discoveries-card" style="display:none">
+        <div class="card-title">🆕 New moments discovered</div>
+        <div id="discoveries-list"></div>
+      </div>
+
+      <!-- Recent captures -->
+      <div class="card">
+        <div class="card-title">Recent Captures</div>
+        <div class="cap-strip" id="cap-strip">
+          <span class="no-cap">No captures yet…</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Frame gallery -->
+  <div class="card" id="gallery-section">
+    <div class="gallery-header">
+      <div class="card-title" style="margin:0">All Frames — Live View</div>
+      <span style="font-size:11px;color:var(--muted)" id="gallery-count">0 frames</span>
+    </div>
+    <div class="gallery-grid" id="gallery-grid"></div>
+  </div>
+
+</div>
+
+<!-- ── ALBUM ──────────────────────────────────────────────────── -->
+<div id="album-section">
+  <div class="album-header-row">
+    <div class="album-title-block">
+      <h2 id="alb-title">Event Album</h2>
+      <p id="alb-sub">—</p>
+    </div>
+    <button class="btn btn-ghost" onclick="closeAlbum()">✕ Close</button>
+  </div>
+  <div class="album-stats-row" id="alb-stats"></div>
+  <div class="album-photos-grid" id="alb-grid"></div>
+</div>
+
+</div><!-- .page -->
+
+<!-- Lightbox -->
+<div class="lbox" id="lbox" onclick="closeLightbox()">
+  <button class="lbox-close">✕</button>
+  <img id="lbox-img" src="" alt="">
+</div>
+
+<!-- Toasts -->
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+let STATE = {
+  sid: null, ws: null, stream: null, interval: null,
+  server: "http://localhost:8765",
+  totalCaptures: 0, totalFrames: 0,
+  scoreHistory: [],
+  galleryVisible: false,
+  demoMode: false,
+  prompt: "",
+  sourceMode: "live",       // "live" | "video"
+  videoFile: null,
+  videoPollTimer: null,
+
+  // ── 2026 additions: adaptive capture + performance instrumentation ──
+  // Why these exist: see README "Performance & Priority" section.
+  //   targetFps:    desired sample rate (drops under thermal/battery
+  //                 stress; restored when conditions allow)
+  //   priorityTier: last server-decided priority tier — when CRITICAL
+  //                 or HIGH, we DO NOT throttle (never-miss guarantee).
+  //   inflightFrames: count of frames sent but not yet acknowledged —
+  //                 used for backpressure handling.
+  //   worker:       Web Worker that handles JPEG encoding off the main
+  //                 thread (Instagram Live pattern). When unsupported,
+  //                 we fall back to the legacy main-thread encoder.
+  targetFps: 8,
+  minFps: 1.5,                 // floor — even with thermal pressure
+  maxFps: 12,
+  priorityTier: "normal",
+  bypassThrottle: false,
+  inflightFrames: 0,
+  maxInflight: 4,
+  worker: null,
+  workerSupported: false,
+  perf: {
+    batteryLevel: null,        // 0..1 (null if unavailable)
+    batteryCharging: null,
+    framesSent: 0,
+    framesEncoded: 0,
+    framesDropped: 0,
+    lastLatencyMs: 0,
+    avgLatencyMs: 0,
+    lastMotion: 0,
+    sessionStartMs: 0,
+    batteryStartLevel: null,
+    fpsAdjustedAt: 0,
+    thermalProxy: "normal",    // normal | warm | hot — derived from
+                               // sustained frame drops + latency growth
+  },
+};
+
+const METRICS_CFG = [
+  {key:"blur",  label:"Sharpness",   color:"#2655d4"},
+  {key:"comp",  label:"Composition", color:"#7c3aed"},
+  {key:"emotion",label:"Emotion",    color:"#e69520"},
+  {key:"bright",label:"Brightness",  color:"#17b86a"},
+  {key:"face_q",label:"Face Quality",color:"#e03535"},
+];
+
+// ═══════════════════════════════════════════════════════════════
+// SESSION
+// ═══════════════════════════════════════════════════════════════
+async function startSession(){
+  const name   = document.getElementById("inp-name").value.trim()   || "My Event";
+  const type   = document.getElementById("inp-type").value;
+  const prompt = document.getElementById("inp-prompt").value.trim() || type;
+  STATE.server = document.getElementById("inp-server").value.trim();
+  STATE.prompt = prompt;
+
+  try {
+    const r = await fetch(`${STATE.server}/sessions`,{
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({event_name:name, event_type:type, prompt})
+    });
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    STATE.sid = d.session_id;
+    initUI(name, type, prompt);
+
+    if(STATE.sourceMode === "video"){
+      showVideoMode();
+      toast("📹 Session ready — upload a video","ok");
+    } else {
+      await startCamera();
+      connectWS();
+      toast("📸 Session started","ok");
+    }
+  } catch(e) {
+    if(STATE.sourceMode === "video"){
+      // No demo mode for video — need a real server
+      toast("⚠️ Could not reach server: "+e.message,"err");
+      return;
+    }
+    STATE.demoMode = true;
+    STATE.sid = "demo_" + Math.random().toString(36).slice(2,6);
+    initUI(name, type, prompt);
+    await startCamera();
+    runDemo();
+    toast("⚠️ Server offline — demo mode","warn");
+  }
+}
+
+function initUI(name, type, prompt){
+  document.getElementById("setup-card").style.display = "none";
+  document.getElementById("live-area").classList.add("active");
+  const preview = document.getElementById("mesh-preview");
+  preview.src = "";
+  preview.classList.remove("active");
+  document.getElementById("sid-chip").textContent = "#"+STATE.sid;
+  document.getElementById("sid-chip").style.display = "block";
+  document.getElementById("sid-display").textContent = STATE.sid;
+  document.getElementById("prompt-display").textContent = prompt.slice(0,40)+(prompt.length>40?"…":"");
+  buildMetrics();
+}
+
+async function startCamera(){
+  try {
+    STATE.stream = await navigator.mediaDevices.getUserMedia({
+      video:{width:640,height:480,facingMode:"environment"},audio:false
+    });
+    document.getElementById("video").srcObject = STATE.stream;
+    return new Promise(r => { document.getElementById("video").onloadedmetadata = ()=>{ document.getElementById("video").play(); r(); }; });
+  } catch(e){ toast("Camera denied — check browser permissions","err"); }
+}
+
+function connectWS(){
+  if(!STATE.sid || STATE.demoMode) return;
+  const url = STATE.server.replace("http","ws") + "/ws/" + STATE.sid;
+  STATE.ws = new WebSocket(url);
+  STATE.ws.onopen  = ()=>{ setConn(true); startCapture(); toast("🔗 Connected","ok"); };
+  STATE.ws.onmessage = e => { try{
+    const d = JSON.parse(e.data);
+    if(typeof handleWsExtra === "function") handleWsExtra(d);
+    handleMsg(d);
+  }catch(_){} };
+  STATE.ws.onerror = ()=>setConn(false);
+  STATE.ws.onclose = ()=>setConn(false);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CAPTURE LOOP  (rewritten 2026)
+//
+// Old loop:  fixed setInterval at 8fps, canvas.toBlob + FileReader
+//            on main thread, no backpressure, no battery awareness.
+//            → thermal throttle in ~15 min on mid-tier phones.
+//
+// New loop:  requestVideoFrameCallback (Instagram Live pattern),
+//            OffscreenCanvas + Web Worker for encoding, adaptive FPS
+//            based on battery / latency / inflight frames, priority
+//            bypass so critical moments are NEVER dropped.
+//
+// Storage:   Nothing leaves the device that isn't already on the WS to
+//            the local server. No cloud, no IndexedDB writes from the
+//            capture path. (Captures themselves live on the local
+//            server's disk under ./captures/<sid>/. See server.py.)
+// ═══════════════════════════════════════════════════════════════
+function initWorker(){
+  if(typeof Worker === "undefined" || typeof OffscreenCanvas === "undefined"){
+    STATE.workerSupported = false;
+    return;
+  }
+  try{
+    STATE.worker = new Worker("snappy-worker.js");
+    STATE.workerSupported = true;
+    STATE.worker.onmessage = ev => {
+      const m = ev.data;
+      if(m.type === "encoded"){
+        STATE.perf.framesEncoded++;
+        STATE.perf.lastMotion = m.motion;
+        const latency = performance.now() - m.capturedAt;
+        STATE.perf.lastLatencyMs = latency;
+        STATE.perf.avgLatencyMs = STATE.perf.avgLatencyMs
+          ? 0.85 * STATE.perf.avgLatencyMs + 0.15 * latency
+          : latency;
+        // Send to server only if WS is open AND we have room
+        if(STATE.ws && STATE.ws.readyState === 1){
+          // Priority bypass: if last decision said CRITICAL/HIGH, never
+          // drop. Otherwise honour inflight limit.
+          const allowSend = STATE.bypassThrottle
+            || STATE.inflightFrames < STATE.maxInflight;
+          if(allowSend){
+            STATE.inflightFrames++;
+            STATE.perf.framesSent++;
+            // Pass local motion + brightness so server can use them as
+            // pre-filters and the priority classifier can boost CRITICAL.
+            STATE.ws.send(JSON.stringify({
+              type:"frame", frame:m.b64,
+              client_motion: m.motion,
+              client_brightness: m.brightness,
+              client_ts: m.capturedAt,
+            }));
+          } else {
+            STATE.perf.framesDropped++;
+          }
+        }
+      } else if(m.type === "error"){
+        STATE.perf.framesDropped++;
+      }
+    };
+  } catch(e){
+    console.warn("Worker init failed, falling back to main-thread encode:", e);
+    STATE.workerSupported = false;
+  }
+}
+
+async function pollBattery(){
+  // Battery Status API — Chromium-supported, Safari deprecated/unsupported.
+  // When unavailable we leave batteryLevel null and the UI hides that row.
+  if(!navigator.getBattery) return;
+  try{
+    const b = await navigator.getBattery();
+    const update = ()=>{
+      STATE.perf.batteryLevel = b.level;
+      STATE.perf.batteryCharging = b.charging;
+      if(STATE.perf.batteryStartLevel === null) STATE.perf.batteryStartLevel = b.level;
+    };
+    update();
+    b.addEventListener("levelchange", update);
+    b.addEventListener("chargingchange", update);
+  } catch(_){ /* ignore — feature isn't critical */ }
+}
+
+function classifyThermal(){
+  // We can't read CPU temp from a browser. Proxy = sustained dropped
+  // frames + growing latency. This is the same heuristic the Chrome
+  // Compute Pressure API will surface natively when widely available.
+  const dropRate = STATE.perf.framesSent === 0 ? 0
+    : STATE.perf.framesDropped / STATE.perf.framesSent;
+  const lat = STATE.perf.avgLatencyMs;
+  if(dropRate > 0.20 || lat > 280) STATE.perf.thermalProxy = "hot";
+  else if(dropRate > 0.08 || lat > 160) STATE.perf.thermalProxy = "warm";
+  else STATE.perf.thermalProxy = "normal";
+}
+
+function maybeAdjustFps(){
+  // Only adjust at most once per 4 seconds — avoids oscillation.
+  const now = performance.now();
+  if(now - STATE.perf.fpsAdjustedAt < 4000) return;
+  classifyThermal();
+  let target = STATE.targetFps;
+  const t = STATE.perf.thermalProxy;
+  const bat = STATE.perf.batteryLevel;
+  const charging = STATE.perf.batteryCharging;
+  // Heat-based throttle (independent of battery).
+  if(t === "hot") target = Math.max(STATE.minFps, target - 2);
+  else if(t === "warm") target = Math.max(STATE.minFps, target - 1);
+  // Battery-based throttle — only when not charging and under 20%.
+  if(bat !== null && !charging){
+    if(bat < 0.10) target = Math.max(STATE.minFps, Math.min(target, 2));
+    else if(bat < 0.20) target = Math.max(STATE.minFps, Math.min(target, 3));
+  }
+  // Recovery — if everything is calm and we're not at max, bump up.
+  if(t === "normal" && (bat === null || bat >= 0.30 || charging)){
+    target = Math.min(STATE.maxFps, target + 1);
+  }
+  if(target !== STATE.targetFps){
+    STATE.targetFps = target;
+    STATE.perf.fpsAdjustedAt = now;
+  }
+}
+
+function startCapture(){
+  initWorker();
+  pollBattery();
+  STATE.perf.sessionStartMs = performance.now();
+  const vid = document.getElementById("video");
+  const cvs = document.getElementById("canvas");
+  const ctx = cvs.getContext("2d", { willReadFrequently: true });
+  cvs.width = 320; cvs.height = 240;
+  let lastSampleMs = 0;
+  let frameId = 0;
+  // Prefer the modern Instagram-Live-style hook (fires aligned with
+  // actual decoded video frames — never overshoots, never wastes work).
+  const hasRVFC = typeof vid.requestVideoFrameCallback === "function";
+
+  function sampleFrame(){
+    const now = performance.now();
+    const interval = 1000 / STATE.targetFps;
+    // Force a sample if we haven't sampled in 1.5× interval — keeps us
+    // honest under heavy GPU load on the video element.
+    const dueByInterval = (now - lastSampleMs) >= interval;
+    const overdue       = (now - lastSampleMs) >= interval * 1.5;
+    if(!dueByInterval && !overdue) return;
+    if(!vid.videoWidth) return;
+    if(!STATE.ws || STATE.ws.readyState !== 1) return;
+    lastSampleMs = now;
+    maybeAdjustFps();
+    // Backpressure: skip ONLY when not in priority bypass.
+    if(!STATE.bypassThrottle && STATE.inflightFrames >= STATE.maxInflight){
+      STATE.perf.framesDropped++;
+      updatePerfOverlay();
+      return;
+    }
+    ctx.drawImage(vid, 0, 0, 320, 240);
+    frameId++;
+    const capturedAt = performance.now();
+    if(STATE.workerSupported && STATE.worker){
+      // Offload encode to worker (zero main-thread cost).
+      createImageBitmap(cvs).then(bitmap => {
+        STATE.worker.postMessage(
+          { type:"frame", bitmap, frameId, capturedAt, quality:0.72 },
+          [bitmap]
+        );
+      }).catch(()=>{ /* swallow — next frame will recover */ });
+    } else {
+      // Fallback: legacy main-thread encode (used on browsers without
+      // OffscreenCanvas / Worker — small slice, e.g. very old Safari).
+      cvs.toBlob(blob=>{
+        const fr = new FileReader();
+        fr.onload = ()=>{
+          const b64 = fr.result.split(",")[1];
+          if(STATE.ws && STATE.ws.readyState===1){
+            STATE.inflightFrames++;
+            STATE.perf.framesSent++;
+            STATE.perf.framesEncoded++;
+            const latency = performance.now() - capturedAt;
+            STATE.perf.lastLatencyMs = latency;
+            STATE.perf.avgLatencyMs = STATE.perf.avgLatencyMs
+              ? 0.85 * STATE.perf.avgLatencyMs + 0.15 * latency
+              : latency;
+            STATE.ws.send(JSON.stringify({type:"frame", frame:b64, client_ts: capturedAt}));
+          }
+        };
+        fr.readAsDataURL(blob);
+      }, "image/jpeg", 0.72);
+    }
+    updatePerfOverlay();
+  }
+
+  if(hasRVFC){
+    // Modern path — aligned to decoded video frames.
+    function tick(){
+      sampleFrame();
+      vid.requestVideoFrameCallback(tick);
+    }
+    vid.requestVideoFrameCallback(tick);
+  } else {
+    // Fallback to interval at 30Hz; sampleFrame() decides whether to
+    // actually act based on STATE.targetFps. Cheaper than running the
+    // full pipeline at 30fps because most ticks are no-ops.
+    STATE.interval = setInterval(sampleFrame, 33);
+  }
+}
+
+// Performance overlay updater — called on every encoded frame.
+function updatePerfOverlay(){
+  const el = document.getElementById("perf-overlay");
+  if(!el) return;
+  const p = STATE.perf;
+  const bat = p.batteryLevel === null ? "—"
+    : (Math.round(p.batteryLevel * 100) + "%" + (p.batteryCharging ? " ⚡" : ""));
+  const drain = (p.batteryStartLevel !== null && p.batteryLevel !== null)
+    ? `${Math.round((p.batteryStartLevel - p.batteryLevel) * 100)}% used` : "";
+  const tier = STATE.priorityTier;
+  const tierColor = tier === "critical" ? "#e03535"
+    : tier === "high" ? "#e69520"
+    : tier === "elevated" ? "#2655d4" : "#888";
+  el.innerHTML = `
+    <div><b>FPS target</b> ${STATE.targetFps.toFixed(1)} · <b>thermal</b> ${p.thermalProxy}</div>
+    <div><b>Latency</b> ${Math.round(p.avgLatencyMs)}ms · <b>inflight</b> ${STATE.inflightFrames}</div>
+    <div><b>Sent</b> ${p.framesSent} · <b>dropped</b> ${p.framesDropped}</div>
+    <div><b>Battery</b> ${bat} ${drain ? "· " + drain : ""}</div>
+    <div><b>Motion</b> ${Math.round(p.lastMotion*100)}% · <b>tier</b>
+      <span style="color:${tierColor}">${tier}${STATE.bypassThrottle ? "★" : ""}</span></div>`;
+}
+
+async function endSession(){
+  if(STATE.interval) clearInterval(STATE.interval);
+  if(STATE.worker){
+    try{ STATE.worker.terminate(); }catch(_){}
+    STATE.worker = null;
+  }
+  if(STATE.ws)       STATE.ws.close();
+  if(STATE.stream)   STATE.stream.getTracks().forEach(t=>t.stop());
+  if(STATE.sid && !STATE.demoMode){
+    try{ await fetch(`${STATE.server}/sessions/${STATE.sid}`,{method:"DELETE"}); }catch(_){}
+  }
+  // Print a perf summary to the console — useful for the "test on real
+  // hardware" phase (see README "Performance & Priority" section).
+  const dur = (performance.now() - STATE.perf.sessionStartMs) / 1000;
+  const battDelta = (STATE.perf.batteryStartLevel !== null && STATE.perf.batteryLevel !== null)
+    ? (STATE.perf.batteryStartLevel - STATE.perf.batteryLevel) * 100 : null;
+  console.table({
+    durationSec: dur.toFixed(1),
+    framesSent: STATE.perf.framesSent,
+    framesDropped: STATE.perf.framesDropped,
+    avgLatencyMs: STATE.perf.avgLatencyMs.toFixed(1),
+    batteryUsedPct: battDelta !== null ? battDelta.toFixed(1) : "n/a",
+    batteryUsedPerHour: battDelta !== null ? ((battDelta / dur) * 3600).toFixed(1) : "n/a",
+    finalThermal: STATE.perf.thermalProxy,
+    captures: STATE.totalCaptures,
+  });
+  setConn(false);
+  toast("Session ended — click Album to generate","ok");
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MESSAGE HANDLER
+// ═══════════════════════════════════════════════════════════════
+function handleMsg(d){
+  if(d.type==="error"){ toast("Server: "+d.message,"err"); return; }
+  if(d.type==="pong")  return;
+  if(d.type!=="frame_result") return;
+
+  // Acknowledge the frame — frees a slot in the backpressure window.
+  if(STATE.inflightFrames > 0) STATE.inflightFrames--;
+
+  // Read the server's priority decision. CRITICAL/HIGH = never throttle
+  // future frames, even under thermal/battery pressure. This is the
+  // "we promised cake-cutting and looking-at-camera will NEVER be
+  // missed" guarantee, implemented end-to-end.
+  if(d.engine){
+    STATE.priorityTier = d.engine.priority_tier || "normal";
+    STATE.bypassThrottle = !!d.engine.bypass_throttle;
+    // If we're in CRITICAL/HIGH tier and currently throttled below 6fps,
+    // temporarily lift the floor so we don't miss the unfolding moment.
+    if(STATE.bypassThrottle && STATE.targetFps < 6){
+      STATE.targetFps = 6;
+    }
+  } else {
+    STATE.bypassThrottle = false;
+  }
+  updatePerfOverlay();
+
+  const a = d.analysis, g = d.gaze, m = d.moment, p = d.prediction;
+  STATE.totalFrames = d.frame_id || STATE.totalFrames+1;
+
+  if(d.live_frame_b64){
+    updateLivePreview(d.live_frame_b64);
+  }
+
+  // Score ring
+  const sc = a.total_score||0;
+  const circ = 175.9;
+  const arc = document.getElementById("score-arc");
+  arc.style.strokeDashoffset = circ*(1-sc);
+  arc.style.stroke = sc>0.70?"#17b86a":sc>0.50?"#e69520":"#e03535";
+  document.getElementById("score-num").textContent = Math.round(sc*100);
+
+  // Gaze
+  document.getElementById("gaze-fill").style.width = (g.gaze_ratio*100)+"%";
+  document.getElementById("gaze-fill").style.background = g.is_group_looking?"#17b86a":"#e69520";
+
+  // Stats
+  document.getElementById("st-caps").textContent   = d.total_captures||0;
+  document.getElementById("st-frames").textContent = d.frame_id||0;
+  document.getElementById("st-faces").textContent  = g.total_faces||0;
+  document.getElementById("st-gaze").textContent   = Math.round((g.gaze_ratio||0)*100)+"%";
+
+  // Metrics
+  updateMetrics({blur:a.blur_score, comp:a.composition_score,
+                  emotion:a.emotion_score, bright:a.brightness_score, face_q:a.face_quality});
+
+  // Trend
+  const tp = document.getElementById("trend-pill");
+  tp.className = "trend-pill t-"+(p.trend||"stable");
+  tp.textContent = {rising:"↗ rising",falling:"↘ falling",peak:"⭐ peak",stable:"→ stable"}[p.trend]||p.trend;
+
+  // Moment badge + ensemble breakdown
+  const e = d.emotion || {dominant:"neutral",score:0};
+  const c = d.clip    || {available:false};
+  const fd= d.face_detection || {backend:"?"};
+  const ni= d.nima    || {available:false, score:null};
+  const he= d.hsemotion || {available:false};
+  const eng = d.engine; // unified EventCaptureEngine breakdown
+  const clipTxt = c.available
+    ? ` · CLIP ${c.best?c.best.replace(/_/g," "):""} ${Math.round((c.best_score||0)*100)}%`
+    : "";
+  const nimaTxt = (ni.available && ni.score!=null)
+    ? ` · NIMA ${Math.round(ni.score*100)}` : "";
+  const ferTxt  = he.available ? "·FER" : "";
+  const engTxt  = eng
+    ? ` · 🎼 ensemble ${Math.round((eng.final_score||0)*100)}/${Math.round((eng.threshold||0)*100)}`
+    : "";
+  document.getElementById("moment-badge").textContent =
+    `🎯 ${(m.detected_moment||"").replace(/_/g," ")} ${Math.round((m.confidence||0)*100)}%`
+    + ` · 😀 ${e.dominant}${ferTxt} ${Math.round((e.score||0)*100)}%`
+    + ` · 👤 ${fd.backend}` + clipTxt + nimaTxt + engTxt;
+
+  // Optional: render per-signal bars under "Frame Analysis" if engine is on
+  if (eng && eng.contributions) renderEnsembleBars(eng);
+
+  // Active moments tags
+  buildMomentTags(d.active_moments||[]);
+
+  // Score chart
+  STATE.scoreHistory.push(sc);
+  if(STATE.scoreHistory.length>80) STATE.scoreHistory.shift();
+  drawChart();
+
+  // Status bar
+  const st = document.getElementById("cam-status");
+  if(d.captured){
+    st.textContent = `📸 Captured! [${(d.capture_reason||"").replace(/_/g," ")}]`;
+    st.className="cam-status hot";
+    triggerFlash();
+    if(d.captured_thumb) addCapThumb(d.captured_thumb, sc, m.detected_moment, d.captured_url);
+    setTimeout(()=>st.className="cam-status",2200);
+  } else if(g.is_group_looking){
+    st.textContent = `👥 Group gaze — ${g.faces_looking}/${g.total_faces} looking`;
+  } else if(p.trend==="rising"){
+    st.textContent = `↗ Rising — peak in ~${Math.round((p.peak_in_ms||0)/100)/10}s`;
+  } else {
+    st.textContent = `⚙ Analysing · ${g.total_faces} face${g.total_faces!==1?"s":""} · ${(m.detected_moment||"").replace(/_/g," ")}`;
+  }
+
+  // Gallery
+  if(d.gallery_frame) addGalleryFrame(d.gallery_frame);
+}
+
+function updateLivePreview(b64){
+  const el = document.getElementById("mesh-preview");
+  if(!el) return;
+  el.src = "data:image/jpeg;base64," + b64;
+  el.classList.add("active");
+}
+
+// ═══════════════════════════════════════════════════════════════
+// UI BUILDERS
+// ═══════════════════════════════════════════════════════════════
+function buildMetrics(){
+  const el = document.getElementById("metrics");
+  el.innerHTML = METRICS_CFG.map(m=>`
+    <div class="metric">
+      <div class="metric-row">
+        <span class="metric-name">${m.label}</span>
+        <span class="metric-num" id="mn-${m.key}">—</span>
+      </div>
+      <div class="bar"><div class="bar-fill" id="mb-${m.key}" style="width:0%;background:${m.color}"></div></div>
+    </div>`).join("");
+}
+
+function updateMetrics(vals){
+  METRICS_CFG.forEach(m=>{
+    const v = vals[m.key]||0;
+    const pct = Math.round(v*100);
+    const ne = document.getElementById("mn-"+m.key);
+    const be = document.getElementById("mb-"+m.key);
+    if(ne) ne.textContent = pct+"%";
+    if(be) be.style.width = pct+"%";
+  });
+}
+
+function buildMomentTags(active){
+  const el = document.getElementById("moment-tags");
+  if(!el) return;
+  // Pull from STATE.prompt
+  const all = STATE.prompt.split(/[,\n]+/).map(s=>s.trim().replace(/\s+/g,"_")).filter(Boolean);
+  el.innerHTML = all.map(t=>{
+    const cls = active.some(a=>a.includes(t.replace(/_/g," ")))||active.includes(t)?"mtag active":"mtag";
+    return `<span class="${cls}">${t.replace(/_/g," ")}</span>`;
+  }).join("");
+}
+
+// Score chart
+function drawChart(){
+  const cvs = document.getElementById("score-chart");
+  if(!cvs) return;
+  const ctx = cvs.getContext("2d");
+  const W = cvs.offsetWidth, H = cvs.offsetHeight;
+  cvs.width=W; cvs.height=H;
+  ctx.clearRect(0,0,W,H);
+  const scores = STATE.scoreHistory;
+  if(scores.length<2) return;
+
+  // Grid lines
+  ctx.strokeStyle="rgba(0,0,0,.07)";ctx.lineWidth=1;
+  [0.25,0.5,0.75].forEach(y=>{
+    ctx.beginPath();ctx.moveTo(0,H*(1-y));ctx.lineTo(W,H*(1-y));ctx.stroke();
+  });
+
+  // Gradient fill
+  const grad = ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,"rgba(230,149,32,.25)");
+  grad.addColorStop(1,"rgba(230,149,32,0)");
+  ctx.beginPath();
+  ctx.moveTo(0,H);
+  scores.forEach((v,i)=>{ const x=i/(scores.length-1)*W; ctx.lineTo(x,H*(1-v)); });
+  ctx.lineTo(W,H);ctx.closePath();
+  ctx.fillStyle=grad;ctx.fill();
+
+  // Line
+  ctx.beginPath();ctx.strokeStyle="#e69520";ctx.lineWidth=2;
+  scores.forEach((v,i)=>{
+    const x=i/(scores.length-1)*W,y=H*(1-v);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+
+  // Threshold line
+  ctx.strokeStyle="rgba(23,184,106,.5)";ctx.lineWidth=1;ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(0,H*0.42);ctx.lineTo(W,H*0.42);ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GALLERY
+// ═══════════════════════════════════════════════════════════════
+function addGalleryFrame(gf){
+  if(!STATE.galleryVisible) return;
+  const grid = document.getElementById("gallery-grid");
+  const el   = document.createElement("div");
+  el.className = "gframe" + (gf.captured?" captured":"") + (gf.gaze?" gaze":"");
+  el.innerHTML = `
+    <img src="data:image/jpeg;base64,${gf.b64}" alt="frame ${gf.id}" loading="lazy"/>
+    <div class="gframe-badge">
+      <span class="gframe-score">${Math.round(gf.score*100)}</span>
+      <span class="gframe-moment">${(gf.moment||"").replace(/_/g," ")}</span>
+    </div>
+    <span class="gframe-gaze">👁</span>`;
+  el.onclick = ()=>{ if(gf.captured && gf.b64) openLightbox("data:image/jpeg;base64,"+gf.b64); };
+  grid.insertBefore(el, grid.firstChild);
+  // Keep max 120 frames in DOM
+  const frames = grid.querySelectorAll(".gframe");
+  if(frames.length > 120) frames[frames.length-1].remove();
+  document.getElementById("gallery-count").textContent = frames.length+" frames";
+}
+
+function toggleGallery(){
+  STATE.galleryVisible = !STATE.galleryVisible;
+  const el = document.getElementById("gallery-section");
+  el.classList.toggle("active", STATE.galleryVisible);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CAPTURE THUMBNAILS
+// ═══════════════════════════════════════════════════════════════
+function addCapThumb(b64, score, moment, url){
+  const strip = document.getElementById("cap-strip");
+  const noCap = strip.querySelector(".no-cap");
+  if(noCap) noCap.remove();
+
+  const el = document.createElement("div");
+  el.className = "cap-thumb";
+  el.dataset.url = url || "";
+  el.dataset.moment = moment || "general_peak";
+  el.innerHTML = `
+    <img src="data:image/jpeg;base64,${b64}" alt="capture"/>
+    <span class="cs">${Math.round(score*100)}</span>
+    <span class="cm">${(moment||"").replace(/_/g," ")}</span>
+    <span class="fb">
+      <button class="up"   title="Keep — teach the AI">👍</button>
+      <button class="down" title="Trash — teach the AI">👎</button>
+    </span>`;
+  el.querySelector("img").onclick = ()=>{ if(url) openLightbox(STATE.server+url); else openLightbox("data:image/jpeg;base64,"+b64); };
+  el.querySelector(".up").onclick   = (ev)=>{ ev.stopPropagation(); sendFeedback(el, true);  };
+  el.querySelector(".down").onclick = (ev)=>{ ev.stopPropagation(); sendFeedback(el, false); };
+  strip.insertBefore(el, strip.firstChild);
+  const all = strip.querySelectorAll(".cap-thumb");
+  if(all.length>16) all[all.length-1].remove();
+}
+
+async function sendFeedback(el, kept){
+  if(!STATE.sid || STATE.demoMode){ toast("Connect server first","warn"); return; }
+  try{
+    const r = await fetch(`${STATE.server}/sessions/${STATE.sid}/feedback`, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({photo_url: el.dataset.url, kept, moment: el.dataset.moment}),
+    });
+    const d = await r.json();
+    el.classList.toggle("kept", kept);
+    el.classList.toggle("trashed", !kept);
+    toast(`${kept?"👍":"👎"} ${el.dataset.moment.replace(/_/g," ")} — keep rate ${Math.round((d.keep_rate||0)*100)}%`,
+          kept?"ok":"warn");
+  }catch(e){ toast("Feedback failed: "+e.message,"err"); }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ALBUM
+// ═══════════════════════════════════════════════════════════════
+async function generateAlbum(){
+  if(!STATE.sid || STATE.demoMode){ toast("Connect server to generate album","warn"); return; }
+  toast("⏳ Generating album…","warn");
+  try {
+    const r = await fetch(`${STATE.server}/sessions/${STATE.sid}/album`,{method:"POST"});
+    if(!r.ok) throw new Error(await r.text());
+    const d = await r.json();
+    renderAlbum(d);
+    toast(`🖼 Album: ${d.total_selected} photos selected!`,"ok");
+  } catch(e){ toast("Album error: "+e.message,"err"); }
+}
+
+function renderAlbum(d){
+  document.getElementById("live-area").classList.remove("active");
+  const sec = document.getElementById("album-section");
+  sec.style.display = "block";
+  document.getElementById("alb-title").textContent = d.event_name+" — Album";
+  document.getElementById("alb-sub").textContent =
+    `${d.total_selected} photos selected from ${d.total_captured} captured`;
+
+  // Stats
+  const st = d.stats||{};
+  document.getElementById("alb-stats").innerHTML = [
+    ["Photos", d.total_selected], ["Avg Score", ((st.avg_q||0)*100).toFixed(0)+"%"],
+    ["Gaze Shots", st.gaze_shots||0], ["Duration", (st.duration_min||0)+"m"]
+  ].map(([k,v])=>`<div class="alstat"><strong>${v}</strong>${k}</div>`).join("");
+
+  // Photos
+  const grid = document.getElementById("alb-grid");
+  grid.innerHTML = "";
+  (d.photos||[]).forEach((p,i)=>{
+    const el = document.createElement("div");
+    el.className = "aphoto";
+    const imgSrc = STATE.server + p.url;
+    el.innerHTML = `
+      <img src="${imgSrc}" alt="photo" loading="lazy"
+           onerror="this.src='data:image/svg+xml,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 1 1&quot;><rect fill=&quot;%23ddd&quot;/></svg>'"/>
+      <span class="abadge">${Math.round(p.score*100)}</span>
+      <span class="atagg">${(p.moment||"").replace(/_/g," ")}</span>`;
+    el.onclick = ()=>openLightbox(imgSrc);
+    grid.appendChild(el);
+  });
+}
+
+function closeAlbum(){
+  document.getElementById("album-section").style.display="none";
+  document.getElementById("live-area").classList.add("active");
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════
+function triggerFlash(){
+  const f = document.getElementById("flash");
+  f.classList.remove("go"); void f.offsetWidth; f.classList.add("go");
+}
+
+function setConn(on){
+  document.getElementById("dot").className = on?"dot live":"dot";
+  document.getElementById("conn-lbl").textContent = on?"Live":"Disconnected";
+}
+
+function openLightbox(src){ document.getElementById("lbox-img").src=src; document.getElementById("lbox").classList.add("open"); }
+function closeLightbox()   { document.getElementById("lbox").classList.remove("open"); }
+
+function toast(msg, type=""){
+  const el = document.createElement("div");
+  el.className="toast "+(type||"");
+  el.textContent=msg;
+  document.getElementById("toasts").appendChild(el);
+  setTimeout(()=>el.remove(), 4200);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SOURCE TOGGLE
+// ═══════════════════════════════════════════════════════════════
+function setSource(mode){
+  STATE.sourceMode = mode;
+  document.getElementById("src-live").classList.toggle("active",  mode==="live");
+  document.getElementById("src-video").classList.toggle("active", mode==="video");
+}
+
+// ═══════════════════════════════════════════════════════════════
+// VIDEO UPLOAD
+// ═══════════════════════════════════════════════════════════════
+function showVideoMode(){
+  // Hide camera, show video panel
+  document.getElementById("cam-wrap").style.display   = "none";
+  document.getElementById("video-panel").classList.add("active");
+  // Update live-badge to "VIDEO"
+  const badge = document.querySelector(".live-badge");
+  if(badge) badge.innerHTML = '<span class="dot live"></span> VIDEO';
+}
+
+function vupFileChosen(input){
+  if(!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  STATE.videoFile = file;
+  document.getElementById("vup-fname").textContent = file.name;
+  document.getElementById("vup-upload-btn").style.display = "inline-block";
+}
+
+function vupDragOver(e){
+  e.preventDefault();
+  document.getElementById("vup-drop").classList.add("dragover");
+}
+function vupDragLeave(e){
+  document.getElementById("vup-drop").classList.remove("dragover");
+}
+function vupDrop(e){
+  e.preventDefault();
+  document.getElementById("vup-drop").classList.remove("dragover");
+  const file = e.dataTransfer?.files?.[0];
+  if(!file || !file.type.startsWith("video/")){ toast("Please drop a video file","err"); return; }
+  STATE.videoFile = file;
+  document.getElementById("vup-fname").textContent = file.name;
+  document.getElementById("vup-upload-btn").style.display = "inline-block";
+}
+
+async function uploadVideo(){
+  if(!STATE.videoFile){ toast("No file selected","err"); return; }
+  if(!STATE.sid){ toast("No active session","err"); return; }
+
+  const sampleFps = parseFloat(document.getElementById("vup-fps-val").value) || 2;
+  const formData  = new FormData();
+  formData.append("video",      STATE.videoFile, STATE.videoFile.name);
+  formData.append("sample_fps", String(sampleFps));
+
+  // Show progress overlay
+  document.getElementById("vup-progress").classList.add("active");
+  document.getElementById("vup-upload-btn").style.display = "none";
+  document.getElementById("vup-prog-label").textContent   = "Uploading…";
+  document.getElementById("vup-prog-sub").textContent     = `${(STATE.videoFile.size/1024/1024).toFixed(1)} MB`;
+  document.getElementById("vup-prog-bar").style.width     = "0%";
+
+  try {
+    const r = await fetch(`${STATE.server}/sessions/${STATE.sid}/upload_video`, {
+      method: "POST",
+      body:   formData,
+    });
+    if(!r.ok){
+      const err = await r.text();
+      throw new Error(err);
+    }
+    // Start polling
+    document.getElementById("vup-prog-label").textContent = "Analysing frames…";
+    toast("📹 Video uploaded — analysing…","ok");
+    startVideoPoll();
+  } catch(e){
+    document.getElementById("vup-progress").classList.remove("active");
+    document.getElementById("vup-upload-btn").style.display = "inline-block";
+    toast("Upload failed: "+e.message,"err");
+  }
+}
+
+function startVideoPoll(){
+  if(STATE.videoPollTimer) clearInterval(STATE.videoPollTimer);
+  STATE.videoPollTimer = setInterval(pollVideoProgress, 900);
+}
+
+async function pollVideoProgress(){
+  if(!STATE.sid) return;
+  try {
+    const r = await fetch(`${STATE.server}/sessions/${STATE.sid}/video_progress`);
+    if(!r.ok) return;
+    const d = await r.json();
+
+    // Update progress bar
+    const pct = d.progress || 0;
+    document.getElementById("vup-prog-bar").style.width     = pct + "%";
+    document.getElementById("vup-prog-caps").textContent    = d.captures || 0;
+    document.getElementById("vup-prog-label").textContent   =
+      d.status === "processing" ? `Analysing… ${pct}%`
+      : d.status === "queued"   ? "Queued…"
+      : d.status === "done"     ? "Done!"
+      : d.status === "error"    ? "Error"
+      : d.status;
+    document.getElementById("vup-prog-sub").textContent =
+      d.total_frames > 0
+        ? `Frame ${d.processed_frames} / ${d.total_frames}`
+        : "Preparing…";
+
+    // Also update stats panel
+    document.getElementById("st-caps").textContent   = d.captures || 0;
+    document.getElementById("st-frames").textContent = d.processed_frames || 0;
+
+    if(d.status === "done"){
+      clearInterval(STATE.videoPollTimer);
+      showVideoDone(d.captures);
+    } else if(d.status === "error"){
+      clearInterval(STATE.videoPollTimer);
+      document.getElementById("vup-progress").classList.remove("active");
+      toast("Video error: " + (d.error || "unknown"), "err");
+      document.getElementById("vup-upload-btn").style.display = "inline-block";
+    }
+  } catch(_){}
+}
+
+function showVideoDone(captures){
+  document.getElementById("vup-progress").classList.remove("active");
+  const done = document.getElementById("vup-done");
+  done.classList.add("active");
+  document.getElementById("vup-done-title").textContent =
+    `${captures} photo${captures!==1?"s":""} captured!`;
+  document.getElementById("vup-done-sub").textContent =
+    "Generate an album or upload another video.";
+  toast(`✅ Video done — ${captures} captures`, "ok");
+}
+
+function vupReset(){
+  document.getElementById("vup-done").classList.remove("active");
+  document.getElementById("vup-progress").classList.remove("active");
+  document.getElementById("vup-upload-btn").style.display = "none";
+  document.getElementById("vup-fname").textContent = "No file selected";
+  document.getElementById("vup-input").value = "";
+  document.getElementById("vup-prog-bar").style.width = "0%";
+  STATE.videoFile = null;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DEMO MODE (no server)
+// ═══════════════════════════════════════════════════════════════
+const DEMO_MOMENTS=["cake_cutting","ring_ceremony","group_photo","first_dance","candle_blowing"];
+function runDemo(){
+  setConn(true);
+  let fid=0;
+  const iv = setInterval(()=>{
+    fid++;
+    const sc = Math.min(1, Math.max(0, 0.35+Math.random()*0.55+Math.sin(fid*0.12)*0.14));
+    const gaze_r = Math.random();
+    const moment = DEMO_MOMENTS[Math.floor(fid/20)%DEMO_MOMENTS.length];
+    const captured = sc>0.80 && Math.random()>0.82 && fid>5;
+    handleMsg({
+      type:"frame_result", frame_id:fid,
+      analysis:{total_score:sc, blur_score:.4+Math.random()*.5,
+                composition_score:Math.random()*.7+.2, emotion_score:Math.random()*.6+.1,
+                brightness_score:.4+Math.random()*.5, face_quality:Math.random()*.7,
+                face_count:Math.floor(Math.random()*5)},
+      gaze:{total_faces:Math.floor(Math.random()*6)+1, faces_looking:Math.floor(Math.random()*4),
+            gaze_ratio:gaze_r, is_group_looking:gaze_r>0.6, confidence:.7},
+      moment:{detected_moment:moment, confidence:.4+Math.random()*.5,
+              all_scores:{}, active_moments:[moment], is_capture_moment:captured},
+      prediction:{trend:["rising","stable","peak","falling"][fid%4],
+                  peak_in_ms:800, confidence:.6, preroll:true},
+      captured, capture_reason:"best_shot",
+      captured_url:null,
+      captured_thumb: captured ? generateDemoThumb(sc) : null,
+      total_captures: STATE.totalCaptures + (captured?1:0),
+      score_timeline:[sc],
+      gallery_frame:{id:fid, b64:generateDemoThumb(sc), score:sc, faces:2,
+                     moment, mconf:.6, gaze:gaze_r>0.6, captured, ts:Date.now()/1000},
+      active_moments:[moment],
+    });
+    if(captured) STATE.totalCaptures++;
+  },130);
+  document.addEventListener("visibilitychange",()=>{ if(document.hidden) clearInterval(iv); });
+}
+
+function generateDemoThumb(score){
+  const cvs=document.createElement("canvas"); cvs.width=160; cvs.height=120;
+  const ctx=cvs.getContext("2d");
+  const h=Math.round(score*220);
+  ctx.fillStyle=`hsl(${h},60%,${30+score*20}%)`;
+  ctx.fillRect(0,0,160,120);
+  ctx.fillStyle="rgba(255,255,255,.15)";
+  for(let i=0;i<6;i++) ctx.fillRect(Math.random()*160,Math.random()*120,20+Math.random()*40,20+Math.random()*30);
+  ctx.fillStyle="#fff"; ctx.font="bold 16px monospace";
+  ctx.fillText(Math.round(score*100),6,20);
+  return cvs.toDataURL("image/jpeg",.6).split(",")[1];
+}
+
+// ═══════════════════════════════════════════════════════════════
+// KEYBOARD
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeLightbox(); });
+window.addEventListener("resize", drawChart);
+
+// ═══════════════════════════════════════════════════════════════
+// LIVE PROMPT (text + voice via Web Speech API)
+// Sends to /sessions/{sid}/prompt, OR direct via WS prompt_update.
+// ═══════════════════════════════════════════════════════════════
+let VOICE = { rec:null, on:false };
+
+function appendPromptHistory(t){
+  const el = document.getElementById("prompt-history");
+  if(!el) return;
+  const li = document.createElement("div");
+  const time = new Date().toLocaleTimeString();
+  li.textContent = `[${time}] ${t.intent}: "${t.text}" → ${t.matched.join(", ")||"(no match)"}`;
+  el.insertBefore(li, el.firstChild);
+  while(el.childNodes.length > 20) el.removeChild(el.lastChild);
+}
+
+async function sendLivePrompt(text){
+  if(!STATE.sid){ toast("Start a session first","warn"); return; }
+  const input = document.getElementById("live-prompt-input");
+  text = (text || input.value || "").trim();
+  if(!text) return;
+  // Prefer the open WS — zero-latency mid-stream prompt change.
+  if(STATE.ws && STATE.ws.readyState === 1){
+    STATE.ws.send(JSON.stringify({type:"prompt_update", text, source:"text"}));
+    input.value = "";
+    return;
+  }
+  // HTTP fallback
+  try{
+    const r = await fetch(`${STATE.server}/sessions/${STATE.sid}/prompt`, {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({text, source:"text"}),
+    });
+    const d = await r.json();
+    if(d.transition){ appendPromptHistory(d.transition); }
+    document.getElementById("prompt-display").textContent = text;
+    input.value = "";
+    toast(`Prompt: ${d.transition.intent} → ${d.active_classes.join(", ")}`, "ok");
+  }catch(e){ toast("Prompt update failed: "+e.message, "err"); }
+}
+
+document.addEventListener("DOMContentLoaded", ()=>{
+  const inp = document.getElementById("live-prompt-input");
+  if(inp){
+    inp.addEventListener("keydown", e=>{
+      if(e.key==="Enter"){ e.preventDefault(); sendLivePrompt(); }
+    });
+  }
+  // Keyboard toggles for the performance overlay (press "p") — hidden
+  // by default so end-users don't see it, but always one keypress away
+  // for developers + first-run on-device testing.
+  document.addEventListener("keydown", e=>{
+    if(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+    if(e.key === "p" || e.key === "P"){
+      const el = document.getElementById("perf-overlay");
+      if(el) el.style.display = (el.style.display === "none" ? "block" : "none");
+    }
+  });
+});
+
+function toggleVoice(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const status = document.getElementById("voice-status");
+  if(!SR){
+    status.textContent = "Browser doesn't support Web Speech (try Chrome/Edge). Server STT optional.";
+    return;
+  }
+  if(VOICE.on){
+    try{ VOICE.rec.stop(); }catch(_){}
+    VOICE.on = false;
+    document.getElementById("btn-voice").textContent = "🎙";
+    status.textContent = "Voice off";
+    return;
+  }
+  const rec = new SR();
+  rec.lang = "en-US";
+  rec.continuous = true;
+  rec.interimResults = true;
+  let lastFinal = "";
+  rec.onresult = (ev)=>{
+    let interim = "", finalText = "";
+    for(let i=ev.resultIndex; i<ev.results.length; i++){
+      const r = ev.results[i];
+      if(r.isFinal) finalText += r[0].transcript;
+      else interim += r[0].transcript;
+    }
+    if(finalText && finalText !== lastFinal){
+      lastFinal = finalText;
+      status.textContent = `Heard: "${finalText.trim()}"`;
+      // Push live to server
+      if(STATE.ws && STATE.ws.readyState === 1){
+        STATE.ws.send(JSON.stringify({type:"prompt_update", text: finalText.trim(), source:"voice"}));
+      }
+    } else if(interim){
+      status.textContent = `… ${interim}`;
+    }
+  };
+  rec.onerror = (e)=>{ status.textContent = "Voice error: "+e.error; };
+  rec.onend = ()=>{
+    if(VOICE.on){ try{ rec.start(); }catch(_){} } // auto-restart while toggled on
+  };
+  try{ rec.start(); }catch(e){ status.textContent="Could not start: "+e.message; return; }
+  VOICE.rec = rec; VOICE.on = true;
+  document.getElementById("btn-voice").textContent = "🛑";
+  status.textContent = "Listening…";
+}
+
+// React to {type:"prompt_changed"} pushed back from the WS
+function handleWsExtra(d){
+  if(d.type === "prompt_changed" && d.transition){
+    appendPromptHistory(d.transition);
+    document.getElementById("prompt-display").textContent = d.transition.text;
+    toast(`Prompt ${d.transition.intent}: ${d.transition.active.join(", ")}`, "ok");
+  }
+  if(d.new_discoveries && d.new_discoveries.length){
+    for(const disc of d.new_discoveries) renderDiscovery(disc);
+  }
+}
+
+function renderDiscovery(disc){
+  const wrap = document.getElementById("discoveries-card");
+  const list = document.getElementById("discoveries-list");
+  if(!wrap || !list || list.querySelector(`[data-cid="${disc.cid}"]`)) return;
+  wrap.style.display = "block";
+  const el = document.createElement("div");
+  el.dataset.cid = disc.cid;
+  el.style.cssText = "padding:8px;border:1px solid var(--border);border-radius:6px;margin-bottom:6px";
+  el.innerHTML = `
+    <div style="font-size:12px;color:var(--ink)">
+      I saw <b>${disc.size}</b> similar special moments I don't have a name for.
+    </div>
+    <div style="display:flex;gap:6px;margin-top:6px">
+      <input class="disc-name" placeholder="Name this moment (e.g. sparkler dance)"
+             style="flex:1;padding:6px;font-size:12px;border:1px solid var(--border);border-radius:4px"/>
+      <button class="btn btn-ghost disc-save">Save</button>
+    </div>`;
+  el.querySelector(".disc-save").onclick = async ()=>{
+    const name = el.querySelector(".disc-name").value.trim();
+    if(!name) return;
+    const r = await fetch(`${STATE.server}/sessions/${STATE.sid}/discoveries/${disc.cid}/name`, {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({name}),
+    });
+    if(r.ok){ el.style.opacity = .5; el.innerHTML = `<div>✅ Saved as "<b>${name}</b>"</div>`; }
+  };
+  list.insertBefore(el, list.firstChild);
+}
+
+// handleWsExtra is invoked from STATE.ws.onmessage above (before handleMsg)
+// so prompt_changed / new_discoveries fire even on frames that aren't captures.
+
+// ═══════════════════════════════════════════════════════════════
+// Ensemble breakdown — shows which models contributed to the final score
+// ═══════════════════════════════════════════════════════════════
+function renderEnsembleBars(eng){
+  const host = document.getElementById("metrics");
+  if(!host) return;
+  let panel = document.getElementById("ensemble-panel");
+  if(!panel){
+    panel = document.createElement("div");
+    panel.id = "ensemble-panel";
+    panel.style.cssText = "margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)";
+    panel.innerHTML = '<div style="font-size:10px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em">Ensemble signals</div><div id="ensemble-bars"></div>';
+    host.parentElement.appendChild(panel);
+  }
+  const bars = panel.querySelector("#ensemble-bars");
+  const order = ["clip","quality","aesthetic","emotion","gaze","kept","face","predictor","learner"];
+  const palette = {clip:"#7c3aed",quality:"#2655d4",aesthetic:"#17b86a",
+                   emotion:"#e69520",gaze:"#e03535",kept:"#06b6d4",
+                   face:"#94a3b8",predictor:"#f59e0b",learner:"#a855f7"};
+  bars.innerHTML = "";
+  for(const k of order){
+    const v = eng.contributions[k] ?? 0;
+    const w = eng.weights[k] ?? 0;
+    const row = document.createElement("div");
+    row.style.cssText = "display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:10px";
+    row.innerHTML = `
+      <span style="width:65px;color:var(--muted)">${k}</span>
+      <div style="flex:1;height:6px;background:var(--cream);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${Math.round(v*100)}%;background:${palette[k]||"#888"}"></div>
+      </div>
+      <span style="width:32px;text-align:right;font-family:monospace">${(v*100).toFixed(0)}</span>
+      <span style="width:30px;text-align:right;color:var(--muted);font-size:9px">×${w.toFixed(2)}</span>`;
+    bars.appendChild(row);
+  }
+  // Add the final composite line
+  const tot = document.createElement("div");
+  tot.style.cssText = "margin-top:6px;padding-top:6px;border-top:1px dashed var(--border);display:flex;justify-content:space-between;font-size:11px;font-weight:700";
+  const tr = eng.triggered ? '<span style="color:#17b86a">▶ TRIGGERED</span>' : '<span style="color:var(--muted)">— wait</span>';
+  tot.innerHTML = `<span>final ${(eng.final_score*100).toFixed(0)} / threshold ${(eng.threshold*100).toFixed(0)}</span>${tr}`;
+  bars.appendChild(tot);
+}
+</script>
+</body>
+</html>
