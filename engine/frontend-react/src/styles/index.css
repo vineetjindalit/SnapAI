@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    background: theme('colors.cream.50');
+    color: theme('colors.ink.900');
+  }
+  body.dev-mode {
+    background: theme('colors.ink.900');
+    color: #e5e7eb;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-6 py-3 rounded-xl
+           bg-gradient-to-br from-brand-500 to-brand-700
+           text-white font-semibold shadow-lg shadow-brand-500/30
+           hover:shadow-xl hover:shadow-brand-500/40 hover:-translate-y-0.5
+           transition disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg
+           bg-white/80 backdrop-blur border border-slate-200
+           text-slate-700 hover:bg-white transition;
+  }
+  .card-soft {
+    @apply rounded-2xl bg-white shadow-sm border border-slate-100 p-6;
+  }
+  .card-dev {
+    @apply rounded-lg bg-ink-800 border border-ink-700 p-3 text-slate-200;
+  }
+}
+
+/* Subtle scrollbar */
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: rgba(100,116,139,.3); border-radius: 4px; }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Reduced motion — global kill-switch.
+
+   This app's animations are FEEDBACK (a capture fired, the socket dropped),
+   so under reduced-motion they must still CHANGE STATE, just instantly:
+   colours, opacity and layout all update, only the movement is removed.
+   Kept to ~0 duration rather than `animation: none` so animation-driven end
+   states (e.g. a flash that ends at opacity 0) still resolve correctly.
+   ───────────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* Native view transitions are skipped outright — withViewTransition() also
+     checks this at the JS level, this is the belt-and-braces half. */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* Viewfinder: the corner brackets tighten and brighten as real capture
+   confidence rises (see components/CameraView.tsx — the intensity is bound
+   to frame_result confidence, never to a free-running timer). */
+@keyframes viewfinder-breathe {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+
+/* Polaroid develop — a newly captured photo resolving into the grid. */
+@keyframes photo-develop {
+  0%   { filter: blur(10px) saturate(0.25) contrast(0.75) brightness(1.14); }
+  60%  { filter: blur(3px)  saturate(0.7)  contrast(0.94) brightness(1.04); }
+  100% { filter: blur(0)    saturate(1)    contrast(1)    brightness(1); }
+}
+
+/* Shared-element morph names for the native View Transitions API. */
+::view-transition-old(photo-morph),
+::view-transition-new(photo-morph) {
+  mix-blend-mode: normal;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
